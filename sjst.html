@@ -3,554 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>手势识别手套 - 无线采集系统</title>
+    <title>针灸数据无线采集系统</title>
+    <link rel="stylesheet" href="./styles/main.css">
+
+    <!-- 响应式按钮缩放：保持比例固定，随页面大小自动调整 -->
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: #050810;
-            color: #e2e8f0;
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            overflow-x: hidden;
-        }
-        .container {
-            max-width: 1920px;
-            margin: 0 auto;
-            padding: 10px;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-template-rows: auto auto auto auto auto auto;
-            gap: 10px;
-            height: 100vh;
+        /* ---------- 顶部控制区按钮 ---------- */
+        .controls .btn-primary,
+        .controls .btn-secondary,
+        .controls .btn-danger {
+            font-size: clamp(0.7rem, 0.85vw, 0.95rem);
+            padding: clamp(5px, 0.5vw, 8px) clamp(8px, 1vw, 14px);
+            min-width: clamp(56px, 5.5vw, 88px);
+            min-height: clamp(26px, 2.2vw, 36px);
+            border-radius: clamp(4px, 0.35vw, 6px);
+            line-height: 1.2;
+            white-space: nowrap;
+            flex: 0 1 auto;
+            transition: all 0.2s ease;
         }
 
-        /* Header */
-        header {
-            grid-column: 1 / -1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #0b1220;
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 1px solid #1e293b;
-        }
-        h1 { font-size: 1rem; font-weight: 600; color: #38bdf8; }
-        .controls { display: flex; gap: 6px; align-items: center; }
-        button {
-            padding: 5px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .btn-primary { background: #059669; color: white; }
-        .btn-primary:hover { background: #047857; }
-        .btn-danger { background: #7f1d1d; color: white; }
-        .btn-danger:hover { background: #991b1b; }
-        .btn-secondary { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
-        .btn-secondary:hover { background: #334155; color: #e2e8f0; }
+        /* ---------- 图标按钮严格 1:1 ---------- */
         .btn-icon {
-            background: transparent;
-            border: 1px solid #334155;
-            color: #94a3b8;
-            padding: 2px 7px;
-            font-size: 0.85rem;
-            border-radius: 4px;
-            cursor: pointer;
-            line-height: 1;
+            width: clamp(22px, 2vw, 30px);
+            height: clamp(22px, 2vw, 30px);
+            aspect-ratio: 1 / 1;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(0.65rem, 0.9vw, 0.9rem);
+            border-radius: clamp(3px, 0.3vw, 5px);
+            flex-shrink: 0;
         }
-        .btn-icon:hover { background: #1e293b; color: #e2e8f0; }
-        button:disabled { opacity: 0.4; cursor: not-allowed; }
-        
-        .status { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #64748b; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #334155; }
-        .status-dot.active { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
-        .stats-bar { display: flex; gap: 14px; font-size: 0.75rem; color: #475569; margin-top: 2px; }
-        .stats-bar span { color: #94a3b8; font-weight: 600; }
 
-        /* 时长显示 */
-        .duration-display {
-            display: flex;
-            gap: 16px;
-            margin-right: 12px;
-            padding-right: 12px;
-            border-right: 1px solid #1e293b;
+        /* ---------- 启动页按钮 ---------- */
+        .splash-enter-btn {
+            font-size: clamp(0.9rem, 1.8vw, 1.3rem);
+            padding: clamp(8px, 1.2vw, 14px) clamp(20px, 3.5vw, 40px);
+            min-height: clamp(36px, 3.5vw, 52px);
+            border-radius: clamp(6px, 0.8vw, 10px);
+            line-height: 1.2;
         }
+
+        .splash-theme-btn {
+            font-size: clamp(0.7rem, 1vw, 0.9rem);
+            padding: clamp(4px, 0.5vw, 6px) clamp(8px, 1vw, 12px);
+            min-height: clamp(24px, 2vw, 32px);
+            border-radius: clamp(4px, 0.4vw, 6px);
+        }
+
+        /* ---------- 控制区布局间距 ---------- */
+        .controls {
+            gap: clamp(4px, 0.4vw, 8px);
+        }
+
+        /* ---------- 状态指示器同步缩放 ---------- */
+        .status span {
+            font-size: clamp(0.7rem, 0.8vw, 0.85rem);
+        }
+
+        .status-dot {
+            width: clamp(8px, 0.8vw, 12px);
+            height: clamp(8px, 0.8vw, 12px);
+        }
+
+        /* ---------- 连接/采集时长 ---------- */
         .duration-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            min-width: 72px;
+            font-size: clamp(0.65rem, 0.75vw, 0.8rem);
+            padding: clamp(2px, 0.3vw, 4px) clamp(4px, 0.5vw, 8px);
         }
-        .duration-label {
-            font-size: 0.7rem;
-            color: #475569;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+
         .duration-value {
-            font-size: 1.1rem;
-            color: #e2e8f0;
-            font-weight: 700;
-            font-family: 'Consolas', 'Monaco', monospace;
-            letter-spacing: 0.5px;
+            font-size: clamp(0.75rem, 0.9vw, 1rem);
+            min-width: clamp(60px, 6vw, 80px);
         }
 
-        /* Row Containers */
-        .row {
-            grid-column: 1 / -1;
-            display: grid;
-            gap: 10px;
-        }
-        .row-pressure { grid-template-columns: repeat(3, 1fr); }
-        .row-strain { grid-template-columns: repeat(3, 1fr); }
-        .row-combined { grid-template-columns: 2fr 1fr; }
-        .row-logs { grid-template-columns: 1fr 1fr; max-height: 180px; }
-
-        /* Panel */
-        .panel {
-            background: #0f172a;
-            border-radius: 8px;
-            border: 1px solid #1e293b;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-            overflow: hidden;
-        }
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #1e293b;
-        }
-        .panel-title { display: flex; align-items: center; gap: 6px; }
-        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-        
-        .thumb-color { color: #fbbf24; }
-        .thumb-dot { background: #f59e0b; }
-        .index-color { color: #60a5fa; }
-        .index-dot { background: #3b82f6; }
-        .middle-color { color: #f87171; }
-        .middle-dot { background: #ef4444; }
-        .wrist-color { color: #4ade80; }
-        .wrist-dot { background: #22c55e; }
-        .back-color { color: #a78bfa; }
-        .back-dot { background: #8b5cf6; }
-
-        canvas {
-            width: 100%;
-            height: 110px;
-            background: #060b14;
-            border-radius: 6px;
-            flex-shrink: 0;
+        /* ---------- 模态框关闭按钮 ---------- */
+        .modal-header .btn-secondary {
+            font-size: clamp(0.75rem, 0.9vw, 0.95rem);
+            padding: clamp(4px, 0.5vw, 6px) clamp(8px, 1vw, 12px);
+            min-height: clamp(24px, 2vw, 32px);
+            border-radius: clamp(4px, 0.35vw, 6px);
         }
 
-        /* Data Grid under chart */
-        .data-grid {
-            display: grid;
-            gap: 3px;
-            margin-top: 6px;
-        }
-        .data-grid.pressure-grid-vals { grid-template-columns: repeat(3, 1fr); }
-        .data-grid.strain-grid-vals { grid-template-columns: repeat(2, 1fr); }
-        .data-grid.imu-grid-vals { grid-template-columns: repeat(3, 1fr); }
-        
-        .data-cell {
-            background: #060b14;
-            border-radius: 4px;
-            padding: 3px 6px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 0.72rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #1e293b;
-        }
-        .data-cell .label { color: #475569; font-size: 0.65rem; }
-        .data-cell .value { color: #e2e8f0; font-weight: 600; }
-
-        /* IMU Column */
-        .imu-column {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            min-height: 0;
-        }
-        .imu-column .panel {
-            flex: 1;
-            min-height: 0;
-        }
-
-        /* ==================== 手部传感器映射 — 绝对固定布局 ==================== */
-        .hand-map-content-v7 {
-            display: flex;
-            flex-direction: row;
-            gap: 16px;
-            height: 100%;
-            padding: 10px;
-            min-height: 0;
-            overflow: hidden;
-        }
-        .map-left-v7 {
-            flex: 1 1 auto;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-width: 0;
-            overflow: hidden;
-            gap: 12px;
-        }
-        .pressure-row-strict {
-            display: flex;
-            gap: 12px;
-            height: 190px;
-            flex-shrink: 0;
-            align-items: flex-start;
-        }
-        .matrix-group-strict {
-            flex: 1 1 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            min-width: 0;
-        }
-        .matrix-label-strict {
-            font-size: 0.85rem;
-            font-weight: 700;
-            height: 18px;
-            line-height: 18px;
-            flex-shrink: 0;
-        }
-        .matrix-strict {
-            display: grid;
-            grid-template-columns: repeat(3, 56px);
-            grid-template-rows: repeat(3, 56px);
-            gap: 5px;
-            flex-shrink: 0;
-        }
-        .cell {
-            width: 56px;
-            height: 56px;
-            border-radius: 8px;
-            background: #0b1220;
-            border: 1px solid #1e293b;
-            transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
-        }
-        .strain-row-strict {
-            display: flex;
-            gap: 12px;
-            height: 110px;
-            flex-shrink: 0;
-            align-items: flex-end;
-        }
-        .strain-wrap-strict {
-            flex: 1 1 0;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            height: 110px;
-            min-width: 0;
-        }
-        .strain-bar-box {
-            width: 64px;
-            height: 110px;
-            position: relative;
-            flex-shrink: 0;
-        }
-        .strain-bar-fill {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            border-radius: 8px;
-            min-height: 8px;
-            transition: height 0.25s ease;
-            height: 8px;
-            z-index: 1;
-        }
-        .strain-bar-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 2;
-            color: rgba(255,255,255,0.95);
-            font-size: 0.82rem;
-            font-weight: 600;
-            pointer-events: none;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.9);
-            white-space: nowrap;
-        }
-        .thumb-proximal-fill { background: rgba(217, 119, 6, 0.75); border: 1px solid rgba(217, 119, 6, 0.95); }
-        .thumb-distal-fill   { background: rgba(245, 158, 11, 0.75); border: 1px solid rgba(245, 158, 11, 0.95); }
-        .index-proximal-fill { background: rgba(37, 99, 235, 0.75); border: 1px solid rgba(37, 99, 235, 0.95); }
-        .index-distal-fill   { background: rgba(147, 197, 253, 0.75); border: 1px solid rgba(147, 197, 253, 0.95); }
-        .middle-proximal-fill{ background: rgba(185, 28, 28, 0.75); border: 1px solid rgba(185, 28, 28, 0.95); }
-        .middle-distal-fill  { background: rgba(252, 165, 165, 0.75); border: 1px solid rgba(252, 165, 165, 0.95); }
-
-        .map-right-v7 {
-            flex: 0 0 220px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border-left: 1px solid #1e293b;
-            padding-left: 16px;
-            overflow: hidden;
-            gap: 12px;
-        }
-        .imu-module-v7 {
-            flex: 1 1 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 6px;
-            min-height: 0;
-        }
-        .imu-title-v7 {
-            font-size: 0.85rem;
-            font-weight: 700;
-            height: 20px;
-            line-height: 20px;
-            flex-shrink: 0;
-        }
-        .imu-bars-v7 {
-            display: flex;
-            gap: 5px;
-            align-items: flex-end;
-            height: 90px;
-            padding: 4px 6px;
-            background: #060b14;
-            border-radius: 6px;
-            border: 1px solid #1e293b;
-            flex-shrink: 0;
-        }
-        .imu-bar-item-v7 {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 3px;
-            min-width: 0;
-        }
-        .imu-bar-label-v7 {
-            font-size: 0.65rem;
-            font-weight: 600;
-            height: 14px;
-            line-height: 14px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-        .imu-bar-track-v7 {
-            width: 100%;
-            height: 60px;
-            background: #0b1220;
-            border-radius: 4px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid #1e293b;
-            flex-shrink: 0;
-        }
-        .imu-bar-fill-v7 {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            min-height: 2px;
-            transition: height 0.25s ease;
-            height: 2px;
-        }
-        .imu-bar-value-v7 {
-            font-size: 0.62rem;
-            font-family: 'Consolas', monospace;
-            color: #e2e8f0;
-            height: 14px;
-            line-height: 14px;
-            text-align: center;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        /* ==================== Zoom Modal ==================== */
-        .modal-overlay {
-            display: none;
+        /* ==================== 鼠标特效样式 ==================== */
+        #mouse-effects {
             position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: rgba(5, 8, 16, 0.96);
-            z-index: 1000;
-            flex-direction: column;
-            padding: 16px 20px 20px;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            flex-shrink: 0;
-        }
-        .modal-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #38bdf8;
-        }
-        .modal-canvas {
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 55vh;
-            max-height: 420px;
-            min-height: 300px;
-            background: #060b14;
-            border-radius: 8px;
-            border: 1px solid #1e293b;
-            flex-shrink: 0;
-        }
-        .zoom-data-grid {
-            display: grid;
-            gap: 6px;
-            margin-top: 10px;
-            padding: 12px;
-            background: #0b1220;
-            border-radius: 6px;
-            border: 1px solid #1e293b;
-            flex-shrink: 0;
-        }
-        .zoom-data-grid.pressure { grid-template-columns: repeat(9, 1fr); }
-        .zoom-data-grid.strain { grid-template-columns: repeat(2, 1fr); }
-        .zoom-data-grid.imu { grid-template-columns: repeat(6, 1fr); }
-        .zoom-data-cell {
-            background: #060b14;
-            border-radius: 4px;
-            padding: 6px 10px;
-            font-family: 'Consolas', monospace;
-            font-size: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #1e293b;
-        }
-        .zoom-data-cell .z-label { font-size: 0.85rem; }
-        .zoom-data-cell .z-value { color: #e2e8f0; font-weight: 600; font-size: 1rem; }
-
-        /* 手部映射放大 */
-        .hand-map-zoom-content {
-            flex: 1;
-            display: flex;
-            flex-direction: row;
-            gap: 30px;
-            padding: 10px;
-            overflow-y: auto;
-            min-height: 0;
-        }
-        .hand-map-zoom-content .map-left-v7 {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 20px;
-        }
-        .hand-map-zoom-content .map-right-v7 {
-            flex: 0 0 280px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border-left: 1px solid #1e293b;
-            padding-left: 30px;
-            gap: 20px;
-        }
-        .hand-map-zoom-content .pressure-row-strict {
-            gap: 30px;
-            height: 280px;
-        }
-        .hand-map-zoom-content .matrix-group-strict {
-            flex: 1;
-        }
-        .hand-map-zoom-content .matrix-strict {
-            grid-template-columns: repeat(3, 90px);
-            grid-template-rows: repeat(3, 90px);
-            gap: 8px;
-        }
-        .hand-map-zoom-content .matrix-label-strict {
-            font-size: 1.1rem;
-            height: 24px;
-            line-height: 24px;
-        }
-        .hand-map-zoom-content .cell {
-            width: 90px;
-            height: 90px;
-        }
-        .hand-map-zoom-content .strain-row-strict {
-            gap: 30px;
-            height: 160px;
-        }
-        .hand-map-zoom-content .strain-wrap-strict {
-            height: 160px;
-        }
-        .hand-map-zoom-content .strain-bar-box {
-            width: 100px;
-            height: 160px;
-        }
-        .hand-map-zoom-content .strain-bar-text {
-            font-size: 1rem;
-        }
-        .hand-map-zoom-content .imu-bars-v7 {
-            height: 130px;
-            padding: 6px 10px;
-        }
-        .hand-map-zoom-content .imu-bar-track-v7 {
-            height: 100px;
-        }
-        .hand-map-zoom-content .imu-bar-label-v7 {
-            font-size: 0.8rem;
-            height: 18px;
-            line-height: 18px;
-        }
-        .hand-map-zoom-content .imu-bar-value-v7 {
-            font-size: 0.78rem;
-            height: 18px;
-            line-height: 18px;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
         }
 
-        /* Log panels */
-        .log-container {
-            flex: 1;
-            overflow-y: auto;
-            background: #060b14;
-            border-radius: 6px;
-            padding: 8px;
-            font-family: 'Consolas', monospace;
-            font-size: 0.78rem;
-            line-height: 1.4;
+        /* 粒子拖尾 */
+        .mouse-particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFade 1s ease-out forwards;
         }
-        .log-entry { margin-bottom: 2px; color: #cbd5e1; }
-        .log-entry.data { color: #4ade80; }
-        .log-entry.debug { color: #64748b; }
-        .log-entry.error { color: #f87171; }
-        .log-entry.warn { color: #fbbf24; }
-        .timestamp { color: #334155; margin-right: 6px; }
 
-        @media (max-width: 900px) {
-            .container { grid-template-columns: 1fr; height: auto; }
-            .row-pressure, .row-strain { grid-template-columns: 1fr; }
-            .row-combined { grid-template-columns: 1fr; }
-            .imu-column { flex-direction: row; }
-            .row-logs { grid-template-columns: 1fr; }
-            .duration-display { display: none; }
-            .hand-map-content-v7 { flex-direction: column; }
-            .map-right-v7 { flex: 0 0 auto; border-left: none; border-top: 1px solid #1e293b; padding-left: 0; padding-top: 16px; flex-direction: row; min-height: 200px; }
-            .imu-module-v7 { flex-direction: column; }
+        @keyframes particleFade {
+            0% {
+                opacity: 0.8;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.2);
+            }
+        }
+
+        /* 点击涟漪 */
+        .click-ripple {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid;
+            pointer-events: none;
+            animation: rippleExpand 0.6s ease-out forwards;
+        }
+
+        @keyframes rippleExpand {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 0.6;
+            }
+            100% {
+                width: 60px;
+                height: 60px;
+                opacity: 0;
+                margin-left: -30px;
+                margin-top: -30px;
+            }
+        }
+
+        /* 鼠标坐标指示器（科技感） */
+        .cursor-coords {
+            position: absolute;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            color: rgba(74, 222, 128, 0.6);
+            pointer-events: none;
+            white-space: nowrap;
+            animation: coordFade 1.5s ease-out forwards;
+        }
+
+        @keyframes coordFade {
+            0% { opacity: 0.6; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+
+        /* 连接线效果 */
+        .mouse-line {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(74, 222, 128, 0.4), transparent);
+            pointer-events: none;
+            transform-origin: left center;
+            animation: lineFade 0.8s ease-out forwards;
+        }
+
+        @keyframes lineFade {
+            0% { opacity: 0.6; width: 0; }
+            50% { opacity: 0.3; }
+            100% { opacity: 0; width: 40px; }
         }
     </style>
 </head>
-<body>
+<body class="splash-active">
+    <!-- 鼠标特效层 -->
+    <div id="mouse-effects"></div>
+
+    <div id="splash-screen" class="splash-screen" aria-hidden="true">
+        <button id="splash-theme-btn" class="splash-theme-btn" type="button" onclick="toggleTheme()">浅色模式</button>
+        <img class="splash-logo" src="./logo/河北工业大学-logo.svg" alt="河北工业大学校徽">
+        <div class="splash-title">针灸手法无线采集系统</div>
+        <div class="splash-subtitle">Initializing Sensors...</div>
+        <button id="enter-app-btn" class="splash-enter-btn" type="button">点击进入系统</button>
+    </div>
+
     <!-- Chart Zoom Modal -->
     <div id="zoom-modal" class="modal-overlay">
         <div class="modal-header">
@@ -632,14 +268,17 @@
     <div class="container">
         <!-- Header -->
         <header>
-            <div>
-                <h1>🧤 手势识别手套 - 无线采集系统</h1>
-                <div class="stats-bar">
-                    <div>帧率: <span id="fps">0</span> Hz</div>
-                    <div>总帧: <span id="total-frames">0</span></div>
-                    <div>已录: <span id="recorded-frames">0</span></div>
-                    <div>错误: <span id="err-lines">0</span></div>
-                    <div>缓存: <span id="buf-size">0</span></div>
+            <div class="header-brand">
+                <img class="school-logo" src="./logo/河北工业大学-logo.svg" alt="河北工业大学校徽">
+                <div class="header-text">
+                    <h1>针灸手法无线采集系统</h1>
+                    <div class="stats-bar">
+                        <div>帧率: <span id="fps">0</span> Hz</div>
+                        <div>总帧: <span id="total-frames">0</span></div>
+                        <div>已录: <span id="recorded-frames">0</span></div>
+                        <div>错误: <span id="err-lines">0</span></div>
+                        <div>缓存: <span id="buf-size">0</span></div>
+                    </div>
                 </div>
             </div>
             <div class="controls">
@@ -665,6 +304,7 @@
                 <button class="btn-secondary" onclick="exportCSV()">导出CSV</button>
                 <button class="btn-secondary" onclick="clearData()">清空数据</button>
                 <button class="btn-secondary" onclick="clearLogs()">清日志</button>
+                <button class="btn-secondary" id="btn-theme" onclick="toggleTheme()">浅色模式</button>
             </div>
         </header>
 
@@ -673,7 +313,7 @@
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title thumb-color">
-                        <span class="dot thumb-dot"></span>👍 拇指指肚压力 (9通道)
+                        <span class="dot thumb-dot"></span>👍 拇指指尖压力 (9通道)
                     </div>
                     <div style="display:flex; gap:6px; align-items:center;">
                         <button class="btn-icon" onclick="openZoom('pressure', 0)" title="放大">🔍</button>
@@ -686,7 +326,7 @@
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title index-color">
-                        <span class="dot index-dot"></span>☝️ 食指指肚压力 (9通道)
+                        <span class="dot index-dot"></span>☝️ 食指指尖压力 (9通道)
                     </div>
                     <div style="display:flex; gap:6px; align-items:center;">
                         <button class="btn-icon" onclick="openZoom('pressure', 1)" title="放大">🔍</button>
@@ -699,7 +339,7 @@
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title middle-color">
-                        <span class="dot middle-dot"></span>🖕 中指指肚压力 (9通道)
+                        <span class="dot middle-dot"></span>🖕 中指指尖压力 (9通道)
                     </div>
                     <div style="display:flex; gap:6px; align-items:center;">
                         <button class="btn-icon" onclick="openZoom('pressure', 2)" title="放大">🔍</button>
@@ -755,7 +395,7 @@
                     </div>
                     <div style="display:flex; gap:6px; align-items:center;">
                         <button class="btn-icon" onclick="openHandMapZoom()" title="放大">🔍</button>
-                        <span style="font-size:0.7rem;color:#475569">实时激活</span>
+                        <span style="font-size:0.7rem;color:#475569"></span>
                     </div>
                 </div>
                 <div class="hand-map-content-v7">
@@ -873,754 +513,161 @@
     </div>
 
     <script>
-        // ==================== 配置 ====================
-        const CONFIG = {
-            BAUDRATE: 115200,
-            EXPECTED_FIELDS: 46,
-            MPU_ACC_SCALE: 4096.0,
-            MPU_GYRO_SCALE: 32.8
-        };
-
-        // ==================== 状态 ====================
-        let history = [];
-        let isPaused = false;
-        let isRecording = false;
-        let isCollecting = false;     // 新增：下位机是否正在采集发送数据
-        let frameCount = 0;
-        let recordedCount = 0;
-        let errorCount = 0;
-        let fps = 0;
-        let frameCounter = 0;
-        let lastFrameTime = performance.now();
-        let connectStartTime = null;
-        let acquireStartTime = null;
-
-        // Zoom 状态
-        let zoomType = null;
-        let zoomIdx = null;
-        let zoomChart = null;
-        let zoomSourceChart = null;
-
-        // ==================== 图表类 ====================
-        class LineChart {
-            constructor(canvasId, colors, maxPoints = 300) {
-                this.canvas = document.getElementById(canvasId);
-                this.ctx = this.canvas.getContext('2d');
-                this.colors = colors;
-                this.lines = colors.map(c => ({ color: c, data: [] }));
-                this.maxPoints = maxPoints;
-                this.resize();
-                window.addEventListener('resize', () => this.resize());
-            }
-            resize() {
-                const rect = this.canvas.getBoundingClientRect();
-                const dpr = window.devicePixelRatio || 1;
-                this.canvas.width = rect.width * dpr;
-                this.canvas.height = rect.height * dpr;
-                this.ctx.scale(dpr, dpr);
-                this.width = rect.width;
-                this.height = rect.height;
-            }
-            addPoint(values) {
-                if (isPaused) return;
-                this.lines.forEach((line, i) => {
-                    line.data.push(values[i]);
-                    if (line.data.length > this.maxPoints) line.data.shift();
-                });
-            }
-            draw() {
-                const ctx = this.ctx, w = this.width, h = this.height;
-                const pad = {top: 8, right: 6, bottom: 18, left: 32};
-                ctx.clearRect(0, 0, w, h);
-
-                let min = Infinity, max = -Infinity;
-                this.lines.forEach(l => l.data.forEach(v => {
-                    if (isFinite(v)) { if (v < min) min = v; if (v > max) max = v; }
-                }));
-                if (!isFinite(min) || min === max) { min = -1; max = 1; }
-                const range = max - min;
-
-                ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1; ctx.beginPath();
-                for (let i = 0; i <= 3; i++) {
-                    const y = pad.top + (h - pad.top - pad.bottom) * i / 3;
-                    ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y);
-                }
-                ctx.stroke();
-
-                ctx.fillStyle = '#334155'; ctx.font = '9px monospace'; ctx.textAlign = 'right';
-                for (let i = 0; i <= 3; i++) {
-                    const val = max - range * i / 3;
-                    ctx.fillText(val.toFixed(1), pad.left - 4, pad.top + (h - pad.top - pad.bottom) * i / 3 + 3);
-                }
-
-                this.lines.forEach(line => {
-                    if (line.data.length < 2) return;
-                    ctx.strokeStyle = line.color; ctx.lineWidth = 1.2; ctx.beginPath();
-                    line.data.forEach((v, i) => {
-                        const x = pad.left + (w - pad.left - pad.right) * (i / (this.maxPoints - 1));
-                        const y = pad.top + (h - pad.top - pad.bottom) * (1 - (v - min) / range);
-                        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-                    });
-                    ctx.stroke();
-                });
-            }
-        }
-
-        // ==================== 初始化图表 ====================
-        const pressureCharts = [
-            new LineChart('canvas-pressure-thumb', ['#78350f','#92400e','#b45309','#d97706','#f59e0b','#fbbf24','#fcd34d','#fde68a','#fef3c7']),
-            new LineChart('canvas-pressure-index', ['#172554','#1e3a8a','#1e40af','#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#dbeafe']),
-            new LineChart('canvas-pressure-middle', ['#450a0a','#7f1d1d','#991b1b','#b91c1c','#dc2626','#ef4444','#f87171','#fca5a5','#fecaca'])
-        ];
-
-        const strainCharts = [
-            new LineChart('canvas-strain-thumb', ['#d97706', '#fcd34d']),
-            new LineChart('canvas-strain-index', ['#2563eb', '#93c5fd']),
-            new LineChart('canvas-strain-middle', ['#b91c1c', '#fca5a5'])
-        ];
-
-        const wristChart = new LineChart('canvas-imu-wrist', ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6']);
-        const backChart = new LineChart('canvas-imu-back', ['#a855f7','#ec4899','#f43f5e','#8b5cf6','#6366f1','#0ea5e9']);
-
-        // ==================== 放大功能（图表）====================
-        function openZoom(type, idx) {
-            let chart;
-            let title;
-            if (type === 'pressure') {
-                chart = pressureCharts[idx];
-                title = ['拇指指肚压力', '食指指肚压力', '中指指肚压力'][idx];
-            } else if (type === 'strain') {
-                chart = strainCharts[idx];
-                title = ['拇指关节应变', '食指关节应变', '中指关节应变'][idx];
-            } else if (type === 'imu') {
-                chart = (idx === 0) ? wristChart : backChart;
-                title = (idx === 0) ? '手腕 IMU (MPU#1)' : '手背 IMU (MPU#2)';
-            }
-            
-            zoomSourceChart = chart;
-            zoomType = type;
-            zoomIdx = idx;
-            
-            document.getElementById('zoom-title').textContent = '🔍 ' + title;
-            const modal = document.getElementById('zoom-modal');
-            modal.style.display = 'flex';
-            
-            const grid = document.getElementById('zoom-data-grid');
-            grid.innerHTML = '';
-            grid.className = 'zoom-data-grid ' + type;
-            
-            let labels, colors;
-            if (type === 'pressure') {
-                labels = Array.from({length:9},(_,i)=>`P${i}`);
-                colors = pressureCharts[idx].colors;
-            } else if (type === 'strain') {
-                labels = ['近端','远端'];
-                colors = strainCharts[idx].colors;
-            } else if (type === 'imu') {
-                labels = ['Ax','Ay','Az','Gx','Gy','Gz'];
-                colors = (idx === 0) ? ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6'] : ['#a855f7','#ec4899','#f43f5e','#8b5cf6','#6366f1','#0ea5e9'];
-            }
-            
-            labels.forEach((label, i) => {
-                const div = document.createElement('div');
-                div.className = 'zoom-data-cell';
-                div.innerHTML = `<span class="z-label" style="color:${colors[i]}">${label}</span><span class="z-value" id="zoom-v${i}">--</span>`;
-                grid.appendChild(div);
-            });
-            
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    const zoomCanvas = document.getElementById('zoom-canvas');
-                    const rect = zoomCanvas.getBoundingClientRect();
-                    const dpr = window.devicePixelRatio || 1;
-                    zoomCanvas.width = rect.width * dpr;
-                    zoomCanvas.height = rect.height * dpr;
-                    const ctx = zoomCanvas.getContext('2d');
-                    ctx.scale(dpr, dpr);
-                    
-                    zoomChart = {
-                        canvas: zoomCanvas, ctx: ctx,
-                        width: rect.width, height: rect.height,
-                        lines: chart.lines,
-                        maxPoints: chart.maxPoints,
-                        draw: function() {
-                            const ctx = this.ctx, w = this.width, h = this.height;
-                            const pad = {top: 16, right: 16, bottom: 44, left: 56};
-                            ctx.clearRect(0, 0, w, h);
-
-                            let min = Infinity, max = -Infinity;
-                            this.lines.forEach(l => l.data.forEach(v => {
-                                if (isFinite(v)) { if (v < min) min = v; if (v > max) max = v; }
-                            }));
-                            if (!isFinite(min) || min === max) { min = -1; max = 1; }
-                            const range = max - min;
-
-                            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1; ctx.beginPath();
-                            for (let i = 0; i <= 4; i++) {
-                                const y = pad.top + (h - pad.top - pad.bottom) * i / 4;
-                                ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y);
-                            }
-                            const xTicks = 6;
-                            for (let i = 0; i < xTicks; i++) {
-                                const x = pad.left + (w - pad.left - pad.right) * (i / (xTicks - 1));
-                                ctx.moveTo(x, pad.top); ctx.lineTo(x, h - pad.bottom);
-                            }
-                            ctx.stroke();
-
-                            ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'right';
-                            for (let i = 0; i <= 4; i++) {
-                                const val = max - range * i / 4;
-                                ctx.fillText(val.toFixed(2), pad.left - 8, pad.top + (h - pad.top - pad.bottom) * i / 4 + 5);
-                            }
-
-                            const xAxisY = h - pad.bottom;
-                            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.beginPath();
-                            ctx.moveTo(pad.left, xAxisY); ctx.lineTo(w - pad.right, xAxisY);
-                            ctx.stroke();
-
-                            ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
-                            const currentFps = Math.max(fps, 1);
-                            const timeSpan = this.maxPoints / currentFps;
-                            for (let i = 0; i < xTicks; i++) {
-                                const ratio = i / (xTicks - 1);
-                                const x = pad.left + (w - pad.left - pad.right) * ratio;
-                                ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.beginPath();
-                                ctx.moveTo(x, xAxisY); ctx.lineTo(x, xAxisY + 6); ctx.stroke();
-                                const sec = (timeSpan * (ratio - 1));
-                                ctx.fillText(`${sec.toFixed(1)}s`, x, xAxisY + 24);
-                            }
-
-                            this.lines.forEach(line => {
-                                if (line.data.length < 2) return;
-                                ctx.strokeStyle = line.color; ctx.lineWidth = 2; ctx.beginPath();
-                                line.data.forEach((v, i) => {
-                                    const x = pad.left + (w - pad.left - pad.right) * (i / (this.maxPoints - 1));
-                                    const y = pad.top + (h - pad.top - pad.bottom) * (1 - (v - min) / range);
-                                    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-                                });
-                                ctx.stroke();
-                            });
-                        }
-                    };
-                });
-            });
-        }
-
-        function closeZoom() {
-            document.getElementById('zoom-modal').style.display = 'none';
-            zoomChart = null;
-            zoomSourceChart = null;
-            zoomType = null;
-            zoomIdx = null;
-        }
-
-        // ==================== 放大功能（手部映射）====================
-        function openHandMapZoom() {
-            document.getElementById('hand-map-modal').style.display = 'flex';
-        }
-        function closeHandMapZoom() {
-            document.getElementById('hand-map-modal').style.display = 'none';
-        }
-
-        // ESC 关闭所有模态框
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeZoom();
-                closeHandMapZoom();
-            }
-        });
-
-        // ==================== 初始化数值显示区域 ====================
-        function createValueGrid(containerId, labels, colors) {
-            const container = document.getElementById(containerId);
-            labels.forEach((label, i) => {
-                const div = document.createElement('div');
-                div.className = 'data-cell';
-                div.innerHTML = `<span class="label" style="color:${colors[i]||'#475569'}">${label}</span><span class="value" id="${containerId}-v${i}">--</span>`;
-                container.appendChild(div);
-            });
-        }
-
-        ['vals-pressure-thumb','vals-pressure-index','vals-pressure-middle'].forEach((id, idx) => {
-            const names = Array.from({length:9},(_,i)=>`P${i}`);
-            createValueGrid(id, names, pressureCharts[idx].colors);
-        });
-
-        createValueGrid('vals-strain-thumb', ['近端','远端'], ['#d97706','#fcd34d']);
-        createValueGrid('vals-strain-index', ['近端','远端'], ['#2563eb','#93c5fd']);
-        createValueGrid('vals-strain-middle', ['近端','远端'], ['#b91c1c','#fca5a5']);
-
-        createValueGrid('vals-imu-wrist', ['Ax','Ay','Az','Gx','Gy','Gz'], ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6']);
-        createValueGrid('vals-imu-back', ['Ax','Ay','Az','Gx','Gy','Gz'], ['#a855f7','#ec4899','#f43f5e','#8b5cf6','#6366f1','#0ea5e9']);
-
-        // ==================== 初始化变色方阵 ====================
-        function initMatrix(containerId) {
-            const container = document.getElementById(containerId);
-            for (let i = 0; i < 9; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                container.appendChild(cell);
-            }
-        }
-        initMatrix('matrix-thumb');
-        initMatrix('matrix-index');
-        initMatrix('matrix-middle');
-        initMatrix('zoom-matrix-thumb');
-        initMatrix('zoom-matrix-index');
-        initMatrix('zoom-matrix-middle');
-
-        // ==================== 初始化 IMU 柱状图 ====================
-        function initImuBars(containerId, colors) {
-            const container = document.getElementById(containerId);
-            const labels = ['Ax','Ay','Az','Gx','Gy','Gz'];
-            labels.forEach((label, i) => {
-                const wrap = document.createElement('div');
-                wrap.className = 'imu-bar-item-v7';
-                wrap.innerHTML = `
-                    <div class="imu-bar-label-v7" style="color:${colors[i]}">${label}</div>
-                    <div class="imu-bar-track-v7">
-                        <div class="imu-bar-fill-v7" id="${containerId}-fill${i}" style="background:${colors[i]}"></div>
-                    </div>
-                    <div class="imu-bar-value-v7" id="${containerId}-v${i}">--</div>
-                `;
-                container.appendChild(wrap);
-            });
-        }
-        const wristImuColors = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6'];
-        const backImuColors = ['#a855f7','#ec4899','#f43f5e','#8b5cf6','#6366f1','#0ea5e9'];
-        initImuBars('imu-bars-wrist', wristImuColors);
-        initImuBars('imu-bars-back', backImuColors);
-        initImuBars('zoom-imu-bars-wrist', wristImuColors);
-        initImuBars('zoom-imu-bars-back', backImuColors);
-
-        // ==================== 更新数值显示 ====================
-        function updateValues(containerId, values) {
-            values.forEach((v, i) => {
-                const el = document.getElementById(`${containerId}-v${i}`);
-                if (el) el.textContent = (typeof v === 'number' ? v.toFixed(3) : v);
-            });
-        }
-
-        // ==================== 更新 IMU 柱状图 ====================
-        function updateImuBars(containerId, values) {
-            values.forEach((v, i) => {
-                const fill = document.getElementById(`${containerId}-fill${i}`);
-                const valEl = document.getElementById(`${containerId}-v${i}`);
-                if (fill) {
-                    const absV = Math.abs(v);
-                    const maxRef = (i < 3) ? 4.0 : 500.0;
-                    const trackH = 60;
-                    const h = Math.min(trackH, Math.max(2, (absV / maxRef) * trackH));
-                    fill.style.height = h + 'px';
-                }
-                if (valEl) valEl.textContent = (typeof v === 'number' ? v.toFixed(2) : v);
-            });
-        }
-
-        // ==================== 更新手部映射 ====================
-        function updateHandMap(strain, pressure, wristAcc, wristGyro, backAcc, backGyro, prefix = '') {
-            const getId = (id) => prefix ? `${prefix}-${id}` : id;
-            
-            const strainMax = 5.0;
-            const barH = (v) => Math.max(8, Math.min(110, (v / strainMax) * 110)) + 'px';
-            document.getElementById(getId('bar-thumb-p')).style.height = barH(strain[0]);
-            document.getElementById(getId('bar-thumb-d')).style.height = barH(strain[1]);
-            document.getElementById(getId('bar-index-p')).style.height = barH(strain[2]);
-            document.getElementById(getId('bar-index-d')).style.height = barH(strain[3]);
-            document.getElementById(getId('bar-middle-p')).style.height = barH(strain[4]);
-            document.getElementById(getId('bar-middle-d')).style.height = barH(strain[5]);
-
-            updateMatrix(getId('matrix-thumb'), pressure[0]);
-            updateMatrix(getId('matrix-index'), pressure[1]);
-            updateMatrix(getId('matrix-middle'), pressure[2]);
-
-            updateImuBars(getId('imu-bars-wrist'), [...wristAcc, ...wristGyro]);
-            updateImuBars(getId('imu-bars-back'), [...backAcc, ...backGyro]);
-        }
-
-        function updateMatrix(containerId, values) {
-            const container = document.getElementById(containerId);
+        // ==================== 鼠标特效系统 ====================
+        (function() {
+            const container = document.getElementById('mouse-effects');
             if (!container) return;
-            const maxVal = Math.max(...values, 0.001);
-            const minVal = Math.min(...values, 0);
-            const range = maxVal - minVal || 1;
-            values.forEach((v, i) => {
-                const cell = container.children[i];
-                if (!cell) return;
-                const norm = (v - minVal) / range;
-                const r = Math.floor(norm * 255);
-                const b = Math.floor((1 - norm) * 200);
-                const g = Math.floor(norm * 80);
-                cell.style.background = `rgb(${r}, ${g}, ${b + 40})`;
-                cell.style.borderColor = `rgba(${r}, ${g}, ${b + 40}, 0.9)`;
-                cell.style.boxShadow = norm > 0.6 ? `0 0 10px rgba(${r}, ${g}, ${b + 40}, 0.5)` : 'none';
-            });
-        }
 
-        // ==================== 更新 Zoom 数据 ====================
-        function updateZoomData(pressure, strain, mpu1_acc, mpu1_gyro, mpu2_acc, mpu2_gyro) {
-            if (!zoomType) return;
-            let values;
-            if (zoomType === 'pressure') values = pressure[zoomIdx];
-            else if (zoomType === 'strain') values = [strain[zoomIdx*2], strain[zoomIdx*2+1]];
-            else if (zoomType === 'imu') values = (zoomIdx === 0) ? [...mpu1_acc, ...mpu1_gyro] : [...mpu2_acc, ...mpu2_gyro];
-            
-            values.forEach((v, i) => {
-                const el = document.getElementById(`zoom-v${i}`);
-                if (el) el.textContent = (typeof v === 'number' ? v.toFixed(3) : v);
-            });
-        }
+            let lastX = 0, lastY = 0;
+            let particleCount = 0;
+            const MAX_PARTICLES = 30; // 限制最大粒子数，避免性能问题
 
-        // ==================== 时长格式化 ====================
-        function formatDuration(ms) {
-            if (!ms || ms < 0) return '00:00:00';
-            const totalSeconds = Math.floor(ms / 1000);
-            const h = Math.floor(totalSeconds / 3600);
-            const m = Math.floor((totalSeconds % 3600) / 60);
-            const s = totalSeconds % 60;
-            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-        }
+            // 配色方案（与系统主题协调）
+            const colors = [
+                'rgba(74, 222, 128, ',   // 绿色（状态指示色）
+                'rgba(56, 189, 248, ',   // 蓝色
+                'rgba(251, 146, 60, ',   // 橙色（拇指）
+                'rgba(244, 114, 182, ',  // 粉色（食指）
+                'rgba(167, 139, 250, ',  // 紫色（中指）
+                'rgba(148, 163, 184, '   // 灰色
+            ];
 
-        setInterval(() => {
-            const now = Date.now();
-            document.getElementById('conn-duration').textContent = connectStartTime ? formatDuration(now - connectStartTime) : '00:00:00';
-            document.getElementById('acq-duration').textContent = acquireStartTime ? formatDuration(now - acquireStartTime) : '00:00:00';
-        }, 1000);
-
-        // ==================== 采集控制（向下位机发送指令）====================
-        async function toggleCollect() {
-            if (!serial.connected) {
-                addLogDebug('请先连接串口');
-                return;
+            function getRandomColor() {
+                return colors[Math.floor(Math.random() * colors.length)];
             }
-            const btn = document.getElementById('btn-collect');
-            if (!isCollecting) {
-                await serial.write('start');
-                isCollecting = true;
-                btn.textContent = '停止采集';
-                btn.className = 'btn-danger';
-                addLogDebug('▶ 向下位机发送 start');
-            } else {
-                await serial.write('stop');
-                isCollecting = false;
-                btn.textContent = '开始采集';
-                btn.className = 'btn-primary';
-                addLogDebug('⏹ 向下位机发送 stop');
-            }
-        }
 
-        // ==================== 记录控制（前端缓存）====================
-        function toggleRecord() {
-            isRecording = !isRecording;
-            const btn = document.getElementById('btn-record');
-            if (isRecording) {
-                btn.textContent = '停止记录';
-                btn.style.background = '#7f1d1d';
-                btn.style.color = '#fff';
-                btn.style.borderColor = '#991b1b';
-                if (!acquireStartTime) acquireStartTime = Date.now();
-                addLogDebug('▶ 开始记录数据到缓存');
-            } else {
-                btn.textContent = '开始记录';
-                btn.style.background = '';
-                btn.style.color = '';
-                btn.style.borderColor = '';
-                addLogDebug('⏹ 停止记录数据');
+            function createParticle(x, y) {
+                if (particleCount >= MAX_PARTICLES) return;
+                
+                const particle = document.createElement('div');
+                particle.className = 'mouse-particle';
+                
+                const size = Math.random() * 4 + 2; // 2-6px
+                const colorBase = getRandomColor();
+                const alpha = Math.random() * 0.4 + 0.3;
+                
+                particle.style.cssText = `
+                    left: ${x}px;
+                    top: ${y}px;
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: ${colorBase}${alpha});
+                    box-shadow: 0 0 ${size * 2}px ${colorBase}${alpha * 0.5});
+                `;
+                
+                container.appendChild(particle);
+                particleCount++;
+                
+                setTimeout(() => {
+                    particle.remove();
+                    particleCount--;
+                }, 1000);
             }
-        }
 
-        // ==================== CSV 解析器 ====================
-        class CsvParser {
-            constructor() { this.buffer = ''; this.decoder = new TextDecoder('utf-8'); }
-            feed(chunk) {
-                this.buffer += this.decoder.decode(chunk, {stream: true});
-                let lines = this.buffer.split('\n');
-                this.buffer = lines.pop();
-                lines.forEach(line => {
-                    line = line.trim().replace(/\r$/, '');
-                    if (!line) return;
-                    const parts = line.split(',');
-                    if (parts.length === CONFIG.EXPECTED_FIELDS && /^\d/.test(parts[0])) {
-                        this.parseData(parts);
-                        addLogData(line.substring(0, 90) + (line.length > 90 ? '...' : ''));
-                    } else {
-                        addLogDebug(line);
+            function createRipple(x, y) {
+                const ripple = document.createElement('div');
+                ripple.className = 'click-ripple';
+                
+                const colorBase = getRandomColor();
+                ripple.style.cssText = `
+                    left: ${x}px;
+                    top: ${y}px;
+                    border-color: ${colorBase}0.6)};
+                    box-shadow: 0 0 10px ${colorBase}0.3)};
+                `;
+                
+                container.appendChild(ripple);
+                
+                setTimeout(() => ripple.remove(), 600);
+            }
+
+            function createCoordLabel(x, y) {
+                const label = document.createElement('div');
+                label.className = 'cursor-coords';
+                label.textContent = `[${x}, ${y}]`;
+                label.style.cssText = `
+                    left: ${x + 15}px;
+                    top: ${y - 10}px;
+                `;
+                
+                container.appendChild(label);
+                setTimeout(() => label.remove(), 1500);
+            }
+
+            function createConnectionLine(x1, y1, x2, y2) {
+                const line = document.createElement('div');
+                line.className = 'mouse-line';
+                
+                const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+                const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+                
+                line.style.cssText = `
+                    left: ${x1}px;
+                    top: ${y1}px;
+                    width: ${length}px;
+                    transform: rotate(${angle}deg);
+                `;
+                
+                container.appendChild(line);
+                setTimeout(() => line.remove(), 800);
+            }
+
+            // 鼠标移动事件
+            let moveThrottle = 0;
+            document.addEventListener('mousemove', (e) => {
+                const x = e.clientX;
+                const y = e.clientY;
+                
+                // 每隔一定距离生成粒子（节流）
+                const dist = Math.sqrt((x - lastX) ** 2 + (y - lastY) ** 2);
+                if (dist > 15) {
+                    createParticle(x, y);
+                    
+                    // 偶尔显示坐标
+                    if (Math.random() > 0.92) {
+                        createCoordLabel(x, y);
                     }
-                });
-            }
-            parseData(parts) {
-                try {
-                    const timestamp = parseInt(parts[0]);
-                    const strain = parts.slice(1, 7).map(v => parseFloat(v));
-                    const pressureFlat = parts.slice(7, 34).map(v => parseFloat(v));
-                    const pressure = [
-                        pressureFlat.slice(0, 9),
-                        pressureFlat.slice(9, 18),
-                        pressureFlat.slice(18, 27)
-                    ];
-
-                    const mpu1_acc = parts.slice(34, 37).map(v => parseInt(v) / CONFIG.MPU_ACC_SCALE);
-                    const mpu1_gyro = parts.slice(37, 40).map(v => parseInt(v) / CONFIG.MPU_GYRO_SCALE);
-                    const mpu2_acc = parts.slice(40, 43).map(v => parseInt(v) / CONFIG.MPU_ACC_SCALE);
-                    const mpu2_gyro = parts.slice(43, 46).map(v => parseInt(v) / CONFIG.MPU_GYRO_SCALE);
-
-                    const imu_wrist = { accel: mpu1_acc, gyro: mpu1_gyro };
-                    const imu_back = { accel: mpu2_acc, gyro: mpu2_gyro };
-                    const frame = { timestamp, strain, pressure, imu_wrist, imu_back, time: Date.now() };
-
-                    if (!isPaused) {
-                        if (isRecording) {
-                            if (!acquireStartTime) acquireStartTime = Date.now();
-                            history.push(frame);
-                            recordedCount++;
-                            document.getElementById('recorded-frames').textContent = recordedCount;
-                            document.getElementById('buf-size').textContent = history.length;
-                        }
-
-                        pressureCharts[0].addPoint(pressure[0]);
-                        pressureCharts[1].addPoint(pressure[1]);
-                        pressureCharts[2].addPoint(pressure[2]);
-                        updateValues('vals-pressure-thumb', pressure[0]);
-                        updateValues('vals-pressure-index', pressure[1]);
-                        updateValues('vals-pressure-middle', pressure[2]);
-
-                        strainCharts[0].addPoint([strain[0], strain[1]]);
-                        strainCharts[1].addPoint([strain[2], strain[3]]);
-                        strainCharts[2].addPoint([strain[4], strain[5]]);
-                        updateValues('vals-strain-thumb', [strain[0], strain[1]]);
-                        updateValues('vals-strain-index', [strain[2], strain[3]]);
-                        updateValues('vals-strain-middle', [strain[4], strain[5]]);
-
-                        wristChart.addPoint([...mpu1_acc, ...mpu1_gyro]);
-                        backChart.addPoint([...mpu2_acc, ...mpu2_gyro]);
-                        updateValues('vals-imu-wrist', [...mpu1_acc, ...mpu1_gyro]);
-                        updateValues('vals-imu-back', [...mpu2_acc, ...mpu2_gyro]);
-
-                        updateHandMap(strain, pressure, mpu1_acc, mpu1_gyro, mpu2_acc, mpu2_gyro);
-                        if (document.getElementById('hand-map-modal').style.display === 'flex') {
-                            updateHandMap(strain, pressure, mpu1_acc, mpu1_gyro, mpu2_acc, mpu2_gyro, 'zoom');
-                        }
-
-                        if (zoomType) {
-                            updateZoomData(pressure, strain, mpu1_acc, mpu1_gyro, mpu2_acc, mpu2_gyro);
-                        }
+                    
+                    // 偶尔画连接线
+                    if (Math.random() > 0.95 && dist < 100) {
+                        createConnectionLine(lastX, lastY, x, y);
                     }
-                    frameCount++; frameCounter++;
-                    document.getElementById('total-frames').textContent = frameCount;
-                    document.getElementById('err-lines').textContent = errorCount;
-                } catch (e) {
-                    errorCount++;
-                    addLogDebug(`解析错误: ${e.message}`);
-                }
-            }
-        }
-
-        // ==================== 串口连接（含写入功能）====================
-        class SerialConnection {
-            constructor() {
-                this.port = null; this.reader = null;
-                this.parser = new CsvParser(); this.connected = false;
-            }
-            async connect() {
-                if (!navigator.serial) { alert('请使用 Chrome/Edge 浏览器'); return; }
-                try {
-                    this.port = await navigator.serial.requestPort();
-                    await this.port.open({ baudRate: CONFIG.BAUDRATE });
-                    this.connected = true;
-                    connectStartTime = Date.now();
-                    updateConnectionUI(true);
-                    addLogDebug(`串口已连接 @ ${CONFIG.BAUDRATE}bps`);
-                    // 启用采集按钮
-                    document.getElementById('btn-collect').disabled = false;
-                    this.readLoop();
-                } catch (e) { addLogDebug(`连接失败: ${e.message}`); }
-            }
-            async readLoop() {
-                this.reader = this.port.readable.getReader();
-                try {
-                    while (this.connected) {
-                        const { value, done } = await this.reader.read();
-                        if (done) break;
-                        if (value) this.parser.feed(value);
-                    }
-                } catch (e) {
-                    if (this.connected) {
-                        addLogDebug(`读取异常/设备断开: ${e.message}`);
-                        await this.disconnect();
-                    }
-                } finally {
-                    if (this.reader) {
-                        try { this.reader.releaseLock(); } catch(e) {}
-                        this.reader = null;
-                    }
-                }
-            }
-            async write(data) {
-                if (!this.port || !this.connected) return;
-                const encoder = new TextEncoder();
-                const writer = this.port.writable.getWriter();
-                try {
-                    await writer.write(encoder.encode(data + '\n'));
-                } catch (e) {
-                    addLogDebug(`写入失败: ${e.message}`);
-                } finally {
-                    writer.releaseLock();
-                }
-            }
-            async disconnect() {
-                this.connected = false;
-                connectStartTime = null;
-                acquireStartTime = null;
-                // 重置采集状态
-                isCollecting = false;
-                const btn = document.getElementById('btn-collect');
-                btn.textContent = '开始采集';
-                btn.className = 'btn-primary';
-                btn.disabled = true;
-                if (this.reader) {
-                    try { await this.reader.cancel(); } catch(e) {}
-                }
-                if (this.port) {
-                    try { await this.port.close(); } catch(e) {}
-                }
-                this.port = null; this.reader = null;
-                updateConnectionUI(false);
-                addLogDebug('串口已断开');
-            }
-        }
-        const serial = new SerialConnection();
-
-        // ==================== UI 辅助 ====================
-        function updateConnectionUI(connected) {
-            document.getElementById('conn-dot').className = 'status-dot ' + (connected ? 'active' : '');
-            document.getElementById('conn-text').textContent = connected ? '已连接' : '未连接';
-            document.getElementById('btn-connect').disabled = connected;
-            document.getElementById('btn-disconnect').disabled = !connected;
-        }
-        function addLogData(msg) {
-            const container = document.getElementById('logData');
-            const entry = document.createElement('div');
-            entry.className = 'log-entry data';
-            const time = new Date().toLocaleTimeString('zh-CN', {hour12:false});
-            entry.innerHTML = `<span class="timestamp">[${time}]</span>${msg}`;
-            container.appendChild(entry);
-            container.scrollTop = container.scrollHeight;
-            document.getElementById('data-log-count').textContent = container.children.length + ' 条';
-            if (container.children.length > 300) container.removeChild(container.firstChild);
-        }
-        function addLogDebug(msg) {
-            const container = document.getElementById('logDebug');
-            const entry = document.createElement('div');
-            entry.className = 'log-entry debug';
-            const time = new Date().toLocaleTimeString('zh-CN', {hour12:false});
-            entry.innerHTML = `<span class="timestamp">[${time}]</span>${msg}`;
-            container.appendChild(entry);
-            container.scrollTop = container.scrollHeight;
-            document.getElementById('debug-log-count').textContent = container.children.length + ' 条';
-            if (container.children.length > 300) container.removeChild(container.firstChild);
-        }
-        function clearLogs() {
-            document.getElementById('logData').innerHTML = '';
-            document.getElementById('logDebug').innerHTML = '';
-            document.getElementById('data-log-count').textContent = '0 条';
-            document.getElementById('debug-log-count').textContent = '0 条';
-        }
-        function clearData() {
-            history = [];
-            frameCount = 0;
-            recordedCount = 0;
-            errorCount = 0;
-            frameCounter = 0;
-            fps = 0;
-            acquireStartTime = null;
-            document.getElementById('fps').textContent = '0';
-            document.getElementById('total-frames').textContent = '0';
-            document.getElementById('recorded-frames').textContent = '0';
-            document.getElementById('buf-size').textContent = '0';
-            
-            pressureCharts.forEach(c => c.lines.forEach(l => l.data = []));
-            strainCharts.forEach(c => c.lines.forEach(l => l.data = []));
-            wristChart.lines.forEach(l => l.data = []);
-            backChart.lines.forEach(l => l.data = []);
-            
-            ['vals-pressure-thumb','vals-pressure-index','vals-pressure-middle'].forEach(id => {
-                for(let i=0; i<9; i++) {
-                    const el = document.getElementById(`${id}-v${i}`);
-                    if(el) el.textContent = '--';
+                    
+                    lastX = x;
+                    lastY = y;
                 }
             });
-            ['vals-strain-thumb','vals-strain-index','vals-strain-middle'].forEach(id => {
-                for(let i=0; i<2; i++) {
-                    const el = document.getElementById(`${id}-v${i}`);
-                    if(el) el.textContent = '--';
+
+            // 鼠标点击事件
+            document.addEventListener('click', (e) => {
+                createRipple(e.clientX, e.clientY);
+                
+                // 点击时爆发多个粒子
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        const offsetX = (Math.random() - 0.5) * 30;
+                        const offsetY = (Math.random() - 0.5) * 30;
+                        createParticle(e.clientX + offsetX, e.clientY + offsetY);
+                    }, i * 50);
                 }
             });
-            ['vals-imu-wrist','vals-imu-back'].forEach(id => {
-                for(let i=0; i<6; i++) {
-                    const el = document.getElementById(`${id}-v${i}`);
-                    if(el) el.textContent = '--';
+
+            // 双击特殊效果
+            document.addEventListener('dblclick', (e) => {
+                for (let i = 0; i < 12; i++) {
+                    const angle = (i / 12) * Math.PI * 2;
+                    const dist = 40;
+                    const px = e.clientX + Math.cos(angle) * dist;
+                    const py = e.clientY + Math.sin(angle) * dist;
+                    
+                    setTimeout(() => {
+                        createParticle(px, py);
+                    }, i * 30);
                 }
             });
-            
-            updateHandMap([0,0,0,0,0,0], [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]], [0,0,0], [0,0,0], [0,0,0], [0,0,0]);
-            if (document.getElementById('hand-map-modal').style.display === 'flex') {
-                updateHandMap([0,0,0,0,0,0], [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]], [0,0,0], [0,0,0], [0,0,0], [0,0,0], 'zoom');
-            }
-            
-            addLogDebug('所有数据已清空，采集时长已重置');
-        }
-        function togglePause() {
-            isPaused = !isPaused;
-            document.getElementById('btn-pause').textContent = isPaused ? '继续' : '暂停';
-            addLogDebug(isPaused ? '显示已暂停（后台仍接收）' : '显示已恢复');
-        }
-        function exportCSV() {
-            if (!history.length) { alert('暂无数据'); return; }
-            let csv = 'timestamp,';
-            for (let i = 0; i < 6; i++) csv += `strain${i+1},`;
-            for (let a = 0; a < 3; a++) for (let p = 0; p < 9; p++) csv += `pressure${a}_${p},`;
-            csv += 'wrist_ax,wrist_ay,wrist_az,wrist_gx,wrist_gy,wrist_gz,';
-            csv += 'back_ax,back_ay,back_az,back_gx,back_gy,back_gz\n';
-            
-            history.forEach(f => {
-                csv += `${f.timestamp},`;
-                csv += f.strain.map(v=>v.toFixed(6)).join(',') + ',';
-                csv += f.pressure.flat().map(v=>v.toFixed(6)).join(',') + ',';
-                csv += [...f.imu_wrist.accel, ...f.imu_wrist.gyro].map(v=>v.toFixed(4)).join(',') + ',';
-                csv += [...f.imu_back.accel, ...f.imu_back.gyro].map(v=>v.toFixed(4)).join(',') + '\n';
-            });
-            
-            const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `glove_data_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
-            addLogDebug(`已导出 ${history.length} 帧`);
-        }
-
-        // ==================== 动画循环 ====================
-        function animate() {
-            const now = performance.now();
-            if (now - lastFrameTime >= 1000) {
-                fps = frameCounter;
-                document.getElementById('fps').textContent = fps;
-                frameCounter = 0;
-                lastFrameTime = now;
-            }
-            pressureCharts.forEach(c => c.draw());
-            strainCharts.forEach(c => c.draw());
-            wristChart.draw();
-            backChart.draw();
-            if (zoomChart) zoomChart.draw();
-            requestAnimationFrame(animate);
-        }
-        animate();
-
-        // 初始化
-        addLogDebug('系统就绪');
-        addLogDebug('连接 ESP32 串口 (115200) 开始接收');
+        })();
     </script>
+
+    <script src="./scripts/app.js"></script>
 </body>
 </html>
