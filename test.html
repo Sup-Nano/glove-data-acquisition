@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>针灸数据无线采集系统</title>
+    <link rel="stylesheet" href="./styles/main.css">
+
+    <!-- 响应式按钮缩放：保持比例固定，随页面大小自动调整 -->
+    <style>
+        /* ---------- 顶部控制区按钮 ---------- */
+        .controls .btn-primary,
+        .controls .btn-secondary,
+        .controls .btn-danger {
+            font-size: clamp(0.7rem, 0.85vw, 0.95rem);
+            padding: clamp(5px, 0.5vw, 8px) clamp(8px, 1vw, 14px);
+            min-width: clamp(56px, 5.5vw, 88px);
+            min-height: clamp(26px, 2.2vw, 36px);
+            border-radius: clamp(4px, 0.35vw, 6px);
+            line-height: 1.2;
+            white-space: nowrap;
+            flex: 0 1 auto;
+            transition: all 0.2s ease;
+        }
+
+        /* ---------- 图标按钮严格 1:1 ---------- */
+        .btn-icon {
+            width: clamp(22px, 2vw, 30px);
+            height: clamp(22px, 2vw, 30px);
+            aspect-ratio: 1 / 1;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(0.65rem, 0.9vw, 0.9rem);
+            border-radius: clamp(3px, 0.3vw, 5px);
+            flex-shrink: 0;
+        }
+
+        /* ---------- 启动页按钮 ---------- */
+        .splash-enter-btn {
+            font-size: clamp(0.9rem, 1.8vw, 1.3rem);
+            padding: clamp(8px, 1.2vw, 14px) clamp(20px, 3.5vw, 40px);
+            min-height: clamp(36px, 3.5vw, 52px);
+            border-radius: clamp(6px, 0.8vw, 10px);
+            line-height: 1.2;
+        }
+
+        .splash-theme-btn {
+            font-size: clamp(0.7rem, 1vw, 0.9rem);
+            padding: clamp(4px, 0.5vw, 6px) clamp(8px, 1vw, 12px);
+            min-height: clamp(24px, 2vw, 32px);
+            border-radius: clamp(4px, 0.4vw, 6px);
+        }
+
+        /* ---------- 控制区布局间距 ---------- */
+        .controls {
+            gap: clamp(4px, 0.4vw, 8px);
+        }
+
+        /* ---------- 状态指示器同步缩放 ---------- */
+        .status span {
+            font-size: clamp(0.7rem, 0.8vw, 0.85rem);
+        }
+
+        .status-dot {
+            width: clamp(8px, 0.8vw, 12px);
+            height: clamp(8px, 0.8vw, 12px);
+        }
+
+        /* ---------- 连接/采集时长 ---------- */
+        .duration-box {
+            font-size: clamp(0.65rem, 0.75vw, 0.8rem);
+            padding: clamp(2px, 0.3vw, 4px) clamp(4px, 0.5vw, 8px);
+        }
+
+        .duration-value {
+            font-size: clamp(0.75rem, 0.9vw, 1rem);
+            min-width: clamp(60px, 6vw, 80px);
+        }
+
+        /* ---------- 模态框关闭按钮 ---------- */
+        .modal-header .btn-secondary {
+            font-size: clamp(0.75rem, 0.9vw, 0.95rem);
+            padding: clamp(4px, 0.5vw, 6px) clamp(8px, 1vw, 12px);
+            min-height: clamp(24px, 2vw, 32px);
+            border-radius: clamp(4px, 0.35vw, 6px);
+        }
+    </style>
+</head>
+<body class="splash-active">
+    <div id="splash-screen" class="splash-screen" aria-hidden="true">
+        <button id="splash-theme-btn" class="splash-theme-btn" type="button" onclick="toggleTheme()">浅色模式</button>
+        <img class="splash-logo" src="./logo/河北工业大学-logo.svg" alt="河北工业大学校徽">
+        <div class="splash-title">针灸手法无线采集系统</div>
+        <div class="splash-subtitle">Initializing Sensors...</div>
+        <button id="enter-app-btn" class="splash-enter-btn" type="button">点击进入系统</button>
+    </div>
+
+    <!-- Chart Zoom Modal -->
+    <div id="zoom-modal" class="modal-overlay">
+        <div class="modal-header">
+            <span class="modal-title" id="zoom-title">图表放大</span>
+            <button class="btn-secondary" onclick="closeZoom()">✕ 关闭</button>
+        </div>
+        <canvas id="zoom-canvas" class="modal-canvas"></canvas>
+        <div id="zoom-data-grid" class="zoom-data-grid"></div>
+    </div>
+
+    <!-- Hand Map Zoom Modal -->
+    <div id="hand-map-modal" class="modal-overlay">
+        <div class="modal-header">
+            <span class="modal-title">👋 手部传感器映射 (放大)</span>
+            <button class="btn-secondary" onclick="closeHandMapZoom()">✕ 关闭</button>
+        </div>
+        <div class="hand-map-zoom-content">
+            <div class="map-left-v7">
+                <div class="pressure-row-strict">
+                    <div class="matrix-group-strict">
+                        <span class="matrix-label-strict thumb-color">拇指</span>
+                        <div class="matrix-strict" id="zoom-matrix-thumb"></div>
+                    </div>
+                    <div class="matrix-group-strict">
+                        <span class="matrix-label-strict index-color">食指</span>
+                        <div class="matrix-strict" id="zoom-matrix-index"></div>
+                    </div>
+                    <div class="matrix-group-strict">
+                        <span class="matrix-label-strict middle-color">中指</span>
+                        <div class="matrix-strict" id="zoom-matrix-middle"></div>
+                    </div>
+                </div>
+                <div class="strain-row-strict">
+                    <div class="strain-wrap-strict">
+                        <div class="strain-bar-box">
+                            <div class="strain-bar-fill thumb-proximal-fill" id="zoom-bar-thumb-p"></div>
+                            <span class="strain-bar-text">近端</span>
+                        </div>
+                        <div class="strain-bar-box">
+                            <div class="strain-bar-fill thumb-distal-fill" id="zoom-bar-thumb-d"></div>
+                            <span class="strain-bar-text">远端</span>
+                        </div>
+                    </div>
+                    <div class="strain-wrap-strict">
+                        <div class="strain-bar-box">
+                            <div class="strain-bar-fill index-proximal-fill" id="zoom-bar-index-p"></div>
+                            <span class="strain-bar-text">近端</span>
+                        </div>
+                        <div class="strain-bar-box">
+                            <div class="strain-bar-fill index-distal-fill" id="zoom-bar-index-d"></div>
+                            <span class="strain-bar-text">远端</span>
+                        </div>
+                    </div>
+                    <div class="strain-wrap-strict">
+                        <div class="strain-bar-box">
+                            <div class="strain-bar-fill middle-proximal-fill" id="zoom-bar-middle-p"></div>
+                            <span class="strain-bar-text">近端</span>
+                        </div>
+                        <div class="strain-bar-box">
+                            <div class="strain-bar-fill middle-distal-fill" id="zoom-bar-middle-d"></div>
+                            <span class="strain-bar-text">远端</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="map-right-v7">
+                <div class="imu-module-v7">
+                    <span class="imu-title-v7 wrist-color">手腕 IMU1</span>
+                    <div class="imu-bars-v7" id="zoom-imu-bars-wrist"></div>
+                </div>
+                <div class="imu-module-v7">
+                    <span class="imu-title-v7 back-color">手背 IMU2</span>
+                    <div class="imu-bars-v7" id="zoom-imu-bars-back"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-brand">
+                <img class="school-logo" src="./logo/河北工业大学-logo.svg" alt="河北工业大学校徽">
+                <div class="header-text">
+                    <h1>针灸手法无线采集系统</h1>
+                    <div class="stats-bar">
+                        <div>帧率: <span id="fps">0</span> Hz</div>
+                        <div>总帧: <span id="total-frames">0</span></div>
+                        <div>已录: <span id="recorded-frames">0</span></div>
+                        <div>错误: <span id="err-lines">0</span></div>
+                        <div>缓存: <span id="buf-size">0</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="controls">
+                <div class="duration-display">
+                    <div class="duration-box">
+                        <span class="duration-label">连接</span>
+                        <span class="duration-value" id="conn-duration">00:00:00</span>
+                    </div>
+                    <div class="duration-box">
+                        <span class="duration-label">采集</span>
+                        <span class="duration-value" id="acq-duration">00:00:00</span>
+                    </div>
+                </div>
+                <div class="status">
+                    <div class="status-dot" id="conn-dot"></div>
+                    <span id="conn-text">未连接</span>
+                </div>
+                <button class="btn-primary" id="btn-connect" onclick="serial.connect()">连接串口</button>
+                <button class="btn-danger" id="btn-disconnect" onclick="serial.disconnect()" disabled>断开</button>
+                <button class="btn-primary" onclick="toggleCollect()" id="btn-collect" disabled>开始采集</button>
+                <button class="btn-secondary" onclick="toggleRecord()" id="btn-record">开始记录</button>
+                <button class="btn-secondary" onclick="togglePause()" id="btn-pause">暂停</button>
+                <button class="btn-secondary" onclick="exportCSV()">导出CSV</button>
+                <button class="btn-secondary" onclick="clearData()">清空数据</button>
+                <button class="btn-secondary" onclick="clearLogs()">清日志</button>
+                <button class="btn-secondary" id="btn-theme" onclick="toggleTheme()">浅色模式</button>
+            </div>
+        </header>
+
+        <!-- 第一行: 压力阵列 -->
+        <div class="row row-pressure">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title thumb-color">
+                        <span class="dot thumb-dot"></span>👍 拇指指尖压力 (9通道)
+                    </div>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <button class="btn-icon" onclick="openZoom('pressure', 0)" title="放大">🔍</button>
+                        <span style="font-size:0.7rem;color:#475569">阵列0</span>
+                    </div>
+                </div>
+                <canvas id="canvas-pressure-thumb"></canvas>
+                <div class="data-grid pressure-grid-vals" id="vals-pressure-thumb"></div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title index-color">
+                        <span class="dot index-dot"></span>☝️ 食指指尖压力 (9通道)
+                    </div>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <button class="btn-icon" onclick="openZoom('pressure', 1)" title="放大">🔍</button>
+                        <span style="font-size:0.7rem;color:#475569">阵列1</span>
+                    </div>
+                </div>
+                <canvas id="canvas-pressure-index"></canvas>
+                <div class="data-grid pressure-grid-vals" id="vals-pressure-index"></div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title middle-color">
+                        <span class="dot middle-dot"></span>🖕 中指指尖压力 (9通道)
+                    </div>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <button class="btn-icon" onclick="openZoom('pressure', 2)" title="放大">🔍</button>
+                        <span style="font-size:0.7rem;color:#475569">阵列2</span>
+                    </div>
+                </div>
+                <canvas id="canvas-pressure-middle"></canvas>
+                <div class="data-grid pressure-grid-vals" id="vals-pressure-middle"></div>
+            </div>
+        </div>
+
+        <!-- 第二行: 应变传感器 -->
+        <div class="row row-strain">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title thumb-color">
+                        <span class="dot thumb-dot"></span>🔧 拇指关节应变 (2通道)
+                    </div>
+                    <button class="btn-icon" onclick="openZoom('strain', 0)" title="放大">🔍</button>
+                </div>
+                <canvas id="canvas-strain-thumb"></canvas>
+                <div class="data-grid strain-grid-vals" id="vals-strain-thumb"></div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title index-color">
+                        <span class="dot index-dot"></span>🔧 食指关节应变 (2通道)
+                    </div>
+                    <button class="btn-icon" onclick="openZoom('strain', 1)" title="放大">🔍</button>
+                </div>
+                <canvas id="canvas-strain-index"></canvas>
+                <div class="data-grid strain-grid-vals" id="vals-strain-index"></div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title middle-color">
+                        <span class="dot middle-dot"></span>🔧 中指关节应变 (2通道)
+                    </div>
+                    <button class="btn-icon" onclick="openZoom('strain', 2)" title="放大">🔍</button>
+                </div>
+                <canvas id="canvas-strain-middle"></canvas>
+                <div class="data-grid strain-grid-vals" id="vals-strain-middle"></div>
+            </div>
+        </div>
+
+        <!-- 第三行: 手部映射 + IMU -->
+        <div class="row row-combined">
+            <!-- 左侧：手部传感器映射 -->
+            <div class="panel hand-map-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>👋 手部传感器映射</span>
+                    </div>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <button class="btn-icon" onclick="openHandMapZoom()" title="放大">🔍</button>
+                        <span style="font-size:0.7rem;color:#475569"></span>
+                    </div>
+                </div>
+                <div class="hand-map-content-v7">
+                    <!-- 左栏：压力矩阵 + 应变条 -->
+                    <div class="map-left-v7">
+                        <div class="pressure-row-strict">
+                            <div class="matrix-group-strict">
+                                <span class="matrix-label-strict thumb-color">拇指</span>
+                                <div class="matrix-strict" id="matrix-thumb"></div>
+                            </div>
+                            <div class="matrix-group-strict">
+                                <span class="matrix-label-strict index-color">食指</span>
+                                <div class="matrix-strict" id="matrix-index"></div>
+                            </div>
+                            <div class="matrix-group-strict">
+                                <span class="matrix-label-strict middle-color">中指</span>
+                                <div class="matrix-strict" id="matrix-middle"></div>
+                            </div>
+                        </div>
+                        <div class="strain-row-strict">
+                            <div class="strain-wrap-strict">
+                                <div class="strain-bar-box">
+                                    <div class="strain-bar-fill thumb-proximal-fill" id="bar-thumb-p"></div>
+                                    <span class="strain-bar-text">近端</span>
+                                </div>
+                                <div class="strain-bar-box">
+                                    <div class="strain-bar-fill thumb-distal-fill" id="bar-thumb-d"></div>
+                                    <span class="strain-bar-text">远端</span>
+                                </div>
+                            </div>
+                            <div class="strain-wrap-strict">
+                                <div class="strain-bar-box">
+                                    <div class="strain-bar-fill index-proximal-fill" id="bar-index-p"></div>
+                                    <span class="strain-bar-text">近端</span>
+                                </div>
+                                <div class="strain-bar-box">
+                                    <div class="strain-bar-fill index-distal-fill" id="bar-index-d"></div>
+                                    <span class="strain-bar-text">远端</span>
+                                </div>
+                            </div>
+                            <div class="strain-wrap-strict">
+                                <div class="strain-bar-box">
+                                    <div class="strain-bar-fill middle-proximal-fill" id="bar-middle-p"></div>
+                                    <span class="strain-bar-text">近端</span>
+                                </div>
+                                <div class="strain-bar-box">
+                                    <div class="strain-bar-fill middle-distal-fill" id="bar-middle-d"></div>
+                                    <span class="strain-bar-text">远端</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 右栏：IMU 柱状图 — 固定 220px，顶到头 -->
+                    <div class="map-right-v7">
+                        <div class="imu-module-v7">
+                            <span class="imu-title-v7 wrist-color">手腕 IMU1</span>
+                            <div class="imu-bars-v7" id="imu-bars-wrist"></div>
+                        </div>
+                        <div class="imu-module-v7">
+                            <span class="imu-title-v7 back-color">手背 IMU2</span>
+                            <div class="imu-bars-v7" id="imu-bars-back"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：IMU 上下排列 -->
+            <div class="imu-column">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title wrist-color">
+                            <span class="dot wrist-dot"></span>⌚ 手腕 IMU (6通道)
+                        </div>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button class="btn-icon" onclick="openZoom('imu', 0)" title="放大">🔍</button>
+                            <span style="font-size:0.7rem;color:#475569">MPU #1</span>
+                        </div>
+                    </div>
+                    <canvas id="canvas-imu-wrist"></canvas>
+                    <div class="data-grid imu-grid-vals" id="vals-imu-wrist"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title back-color">
+                            <span class="dot back-dot"></span>✋ 手背 IMU (6通道)
+                        </div>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button class="btn-icon" onclick="openZoom('imu', 1)" title="放大">🔍</button>
+                            <span style="font-size:0.7rem;color:#475569">MPU #2</span>
+                        </div>
+                    </div>
+                    <canvas id="canvas-imu-back"></canvas>
+                    <div class="data-grid imu-grid-vals" id="vals-imu-back"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第四行: 日志 -->
+        <div class="row row-logs">
+            <div class="panel" style="max-height:180px">
+                <div class="panel-header">
+                    <span style="color:#4ade80">📥 实时接收数据</span>
+                    <span id="data-log-count" style="font-size:0.7rem;color:#475569">0 条</span>
+                </div>
+                <div class="log-container" id="logData"></div>
+            </div>
+            <div class="panel" style="max-height:180px">
+                <div class="panel-header">
+                    <span style="color:#94a3b8">🔧 调试信息</span>
+                    <span id="debug-log-count" style="font-size:0.7rem;color:#475569">0 条</span>
+                </div>
+                <div class="log-container" id="logDebug"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./scripts/app.js"></script>
+</body>
+</html>
