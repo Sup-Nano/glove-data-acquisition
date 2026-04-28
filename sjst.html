@@ -6,7 +6,6 @@
     <title>针灸数据无线采集系统</title>
     <link rel="stylesheet" href="./styles/main.css">
 
-    <!-- 响应式按钮缩放：保持比例固定，随页面大小自动调整 -->
     <style>
         /* ---------- 顶部控制区按钮 ---------- */
         .controls .btn-primary,
@@ -23,7 +22,6 @@
             transition: all 0.2s ease;
         }
 
-        /* ---------- 图标按钮严格 1:1 ---------- */
         .btn-icon {
             width: clamp(22px, 2vw, 30px);
             height: clamp(22px, 2vw, 30px);
@@ -37,7 +35,6 @@
             flex-shrink: 0;
         }
 
-        /* ---------- 启动页按钮 ---------- */
         .splash-enter-btn {
             font-size: clamp(0.9rem, 1.8vw, 1.3rem);
             padding: clamp(8px, 1.2vw, 14px) clamp(20px, 3.5vw, 40px);
@@ -53,33 +50,23 @@
             border-radius: clamp(4px, 0.4vw, 6px);
         }
 
-        /* ---------- 控制区布局间距 ---------- */
-        .controls {
-            gap: clamp(4px, 0.4vw, 8px);
-        }
+        .controls { gap: clamp(4px, 0.4vw, 8px); }
 
-        /* ---------- 状态指示器同步缩放 ---------- */
-        .status span {
-            font-size: clamp(0.7rem, 0.8vw, 0.85rem);
-        }
-
+        .status span { font-size: clamp(0.7rem, 0.8vw, 0.85rem); }
         .status-dot {
             width: clamp(8px, 0.8vw, 12px);
             height: clamp(8px, 0.8vw, 12px);
         }
 
-        /* ---------- 连接/采集时长 ---------- */
         .duration-box {
             font-size: clamp(0.65rem, 0.75vw, 0.8rem);
             padding: clamp(2px, 0.3vw, 4px) clamp(4px, 0.5vw, 8px);
         }
-
         .duration-value {
             font-size: clamp(0.75rem, 0.9vw, 1rem);
             min-width: clamp(60px, 6vw, 80px);
         }
 
-        /* ---------- 模态框关闭按钮 ---------- */
         .modal-header .btn-secondary {
             font-size: clamp(0.75rem, 0.9vw, 0.95rem);
             padding: clamp(4px, 0.5vw, 6px) clamp(8px, 1vw, 12px);
@@ -87,7 +74,98 @@
             border-radius: clamp(4px, 0.35vw, 6px);
         }
 
-        /* ==================== 鼠标特效样式 ==================== */
+        /* ==================== 3×3 压力矩阵（大图效果）==================== */
+        .pressure-row-strict {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            gap: 12px;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        .matrix-group-strict {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+        }
+        .matrix-label-strict {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .matrix-strict {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 5px;
+            width: 100%;
+            min-height: 175px;
+        }
+        .matrix-cell {
+            border-radius: 5px;
+            background: rgba(148, 163, 184, 0.12);
+            transition: all 0.25s ease;
+            position: relative;
+            min-height: 50px;
+            min-width: 50px;
+            cursor: default;
+        }
+        .matrix-cell::after {
+            content: attr(data-val);
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.9);
+            pointer-events: none;
+            font-family: 'Courier New', monospace;
+        }
+        .thumb-cell.active  { background: rgba(251, 146, 60, 0.9) !important; box-shadow: 0 0 8px rgba(251,146,60,0.5); }
+        .index-cell.active  { background: rgba(244, 114, 182, 0.9) !important; box-shadow: 0 0 8px rgba(244,114,182,0.5); }
+        .middle-cell.active { background: rgba(167, 139, 250, 0.9) !important; box-shadow: 0 0 8px rgba(167,139,250,0.5); }
+
+        /* ==================== 应变条：远端近端水平并列（左远端 右近端）==================== */
+        .strain-row-strict {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            gap: 12px;
+            width: 100%;
+            margin-top: 4px;
+        }
+        .strain-wrap-strict {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 8px;
+            flex: 1;
+        }
+        .strain-bar-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            flex: 1;
+            max-width: 45%;
+        }
+        .strain-bar-fill {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+        .strain-bar-text {
+            font-size: 0.65rem;
+            color: #94a3b8;
+        }
+
+        /* ==================== 鼠标拖影特效 ==================== */
         #mouse-effects {
             position: fixed;
             top: 0;
@@ -98,27 +176,16 @@
             z-index: 9999;
             overflow: hidden;
         }
-
-        /* 粒子拖尾 */
         .mouse-particle {
             position: absolute;
             border-radius: 50%;
             pointer-events: none;
             animation: particleFade 1s ease-out forwards;
         }
-
         @keyframes particleFade {
-            0% {
-                opacity: 0.8;
-                transform: translate(-50%, -50%) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.2);
-            }
+            0% { opacity: 0.8; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
         }
-
-        /* 点击涟漪 */
         .click-ripple {
             position: absolute;
             border-radius: 50%;
@@ -126,23 +193,10 @@
             pointer-events: none;
             animation: rippleExpand 0.6s ease-out forwards;
         }
-
         @keyframes rippleExpand {
-            0% {
-                width: 0;
-                height: 0;
-                opacity: 0.6;
-            }
-            100% {
-                width: 60px;
-                height: 60px;
-                opacity: 0;
-                margin-left: -30px;
-                margin-top: -30px;
-            }
+            0% { width: 0; height: 0; opacity: 0.6; }
+            100% { width: 60px; height: 60px; opacity: 0; margin-left: -30px; margin-top: -30px; }
         }
-
-        /* 鼠标坐标指示器（科技感） */
         .cursor-coords {
             position: absolute;
             font-family: 'Courier New', monospace;
@@ -152,13 +206,10 @@
             white-space: nowrap;
             animation: coordFade 1.5s ease-out forwards;
         }
-
         @keyframes coordFade {
             0% { opacity: 0.6; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-20px); }
         }
-
-        /* 连接线效果 */
         .mouse-line {
             position: absolute;
             height: 1px;
@@ -167,65 +218,15 @@
             transform-origin: left center;
             animation: lineFade 0.8s ease-out forwards;
         }
-
         @keyframes lineFade {
             0% { opacity: 0.6; width: 0; }
             50% { opacity: 0.3; }
             100% { opacity: 0; width: 40px; }
         }
-
-        /* ==================== 压力矩阵 3×3 网格 ==================== */
-        .matrix-strict {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            gap: clamp(2px, 0.3vw, 4px);
-            width: 100%;
-            height: 100%;
-            min-height: clamp(60px, 6vw, 90px);
-        }
-
-        .matrix-cell {
-            background: rgba(148, 163, 184, 0.12);
-            border-radius: clamp(2px, 0.3vw, 4px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: clamp(0.5rem, 0.65vw, 0.7rem);
-            color: rgba(255, 255, 255, 0.5);
-            transition: all 0.25s ease;
-            border: 1px solid rgba(148, 163, 184, 0.08);
-            cursor: default;
-            overflow: hidden;
-        }
-
-        /* 拇指：橙色系 */
-        .thumb-matrix .matrix-cell.active,
-        .thumb-matrix .matrix-cell:hover {
-            background: rgba(251, 146, 60, 0.65);
-            border-color: rgba(251, 146, 60, 0.4);
-            color: #fff;
-        }
-
-        /* 食指：粉色系 */
-        .index-matrix .matrix-cell.active,
-        .index-matrix .matrix-cell:hover {
-            background: rgba(244, 114, 182, 0.65);
-            border-color: rgba(244, 114, 182, 0.4);
-            color: #fff;
-        }
-
-        /* 中指：紫色系 */
-        .middle-matrix .matrix-cell.active,
-        .middle-matrix .matrix-cell:hover {
-            background: rgba(167, 139, 250, 0.65);
-            border-color: rgba(167, 139, 250, 0.4);
-            color: #fff;
-        }
     </style>
 </head>
 <body class="splash-active">
-    <!-- 鼠标特效层 -->
+    <!-- 鼠标拖影层 -->
     <div id="mouse-effects"></div>
 
     <div id="splash-screen" class="splash-screen" aria-hidden="true">
@@ -257,76 +258,76 @@
                 <div class="pressure-row-strict">
                     <div class="matrix-group-strict">
                         <span class="matrix-label-strict thumb-color">拇指</span>
-                        <div class="matrix-strict thumb-matrix" id="zoom-matrix-thumb">
-                            <div class="matrix-cell" data-idx="0"></div>
-                            <div class="matrix-cell" data-idx="1"></div>
-                            <div class="matrix-cell" data-idx="2"></div>
-                            <div class="matrix-cell" data-idx="9"></div>
-                            <div class="matrix-cell" data-idx="10"></div>
-                            <div class="matrix-cell" data-idx="11"></div>
-                            <div class="matrix-cell" data-idx="18"></div>
-                            <div class="matrix-cell" data-idx="19"></div>
-                            <div class="matrix-cell" data-idx="20"></div>
+                        <div class="matrix-strict" id="zoom-matrix-thumb">
+                            <div class="matrix-cell thumb-cell" id="zoom-thumb-r0c0" data-val="0.00"></div>
+                            <div class="matrix-cell thumb-cell" id="zoom-thumb-r0c1" data-val="0.00"></div>
+                            <div class="matrix-cell thumb-cell" id="zoom-thumb-r0c2" data-val="0.00"></div>
+                            <div class="matrix-cell thumb-cell" id="zoom-thumb-r1c0" data-val="0.00"></div>
+                            <div class="matrix-cell thumb-cell" id="zoom-thumb-r1c1" data-val="0.00"></div>
+                            <div class="matrix-cell thumb-cell" id="zoom-thumb-r1c2" data-val="0.00"></div>
+                            <div class="matrix-cell thumb-cell" id="zoom-thumb-r2c0" data-val="0.00"></div>
+                            <div class="matrix-cell thumb-cell" id="zoom-thumb-r2c1" data-val="0.00"></div>
+                            <div class="matrix-cell thumb-cell" id="zoom-thumb-r2c2" data-val="0.00"></div>
                         </div>
                     </div>
                     <div class="matrix-group-strict">
                         <span class="matrix-label-strict index-color">食指</span>
-                        <div class="matrix-strict index-matrix" id="zoom-matrix-index">
-                            <div class="matrix-cell" data-idx="3"></div>
-                            <div class="matrix-cell" data-idx="4"></div>
-                            <div class="matrix-cell" data-idx="5"></div>
-                            <div class="matrix-cell" data-idx="12"></div>
-                            <div class="matrix-cell" data-idx="13"></div>
-                            <div class="matrix-cell" data-idx="14"></div>
-                            <div class="matrix-cell" data-idx="21"></div>
-                            <div class="matrix-cell" data-idx="22"></div>
-                            <div class="matrix-cell" data-idx="23"></div>
+                        <div class="matrix-strict" id="zoom-matrix-index">
+                            <div class="matrix-cell index-cell" id="zoom-index-r0c0" data-val="0.00"></div>
+                            <div class="matrix-cell index-cell" id="zoom-index-r0c1" data-val="0.00"></div>
+                            <div class="matrix-cell index-cell" id="zoom-index-r0c2" data-val="0.00"></div>
+                            <div class="matrix-cell index-cell" id="zoom-index-r1c0" data-val="0.00"></div>
+                            <div class="matrix-cell index-cell" id="zoom-index-r1c1" data-val="0.00"></div>
+                            <div class="matrix-cell index-cell" id="zoom-index-r1c2" data-val="0.00"></div>
+                            <div class="matrix-cell index-cell" id="zoom-index-r2c0" data-val="0.00"></div>
+                            <div class="matrix-cell index-cell" id="zoom-index-r2c1" data-val="0.00"></div>
+                            <div class="matrix-cell index-cell" id="zoom-index-r2c2" data-val="0.00"></div>
                         </div>
                     </div>
                     <div class="matrix-group-strict">
                         <span class="matrix-label-strict middle-color">中指</span>
-                        <div class="matrix-strict middle-matrix" id="zoom-matrix-middle">
-                            <div class="matrix-cell" data-idx="6"></div>
-                            <div class="matrix-cell" data-idx="7"></div>
-                            <div class="matrix-cell" data-idx="8"></div>
-                            <div class="matrix-cell" data-idx="15"></div>
-                            <div class="matrix-cell" data-idx="16"></div>
-                            <div class="matrix-cell" data-idx="17"></div>
-                            <div class="matrix-cell" data-idx="24"></div>
-                            <div class="matrix-cell" data-idx="25"></div>
-                            <div class="matrix-cell" data-idx="26"></div>
+                        <div class="matrix-strict" id="zoom-matrix-middle">
+                            <div class="matrix-cell middle-cell" id="zoom-middle-r0c0" data-val="0.00"></div>
+                            <div class="matrix-cell middle-cell" id="zoom-middle-r0c1" data-val="0.00"></div>
+                            <div class="matrix-cell middle-cell" id="zoom-middle-r0c2" data-val="0.00"></div>
+                            <div class="matrix-cell middle-cell" id="zoom-middle-r1c0" data-val="0.00"></div>
+                            <div class="matrix-cell middle-cell" id="zoom-middle-r1c1" data-val="0.00"></div>
+                            <div class="matrix-cell middle-cell" id="zoom-middle-r1c2" data-val="0.00"></div>
+                            <div class="matrix-cell middle-cell" id="zoom-middle-r2c0" data-val="0.00"></div>
+                            <div class="matrix-cell middle-cell" id="zoom-middle-r2c1" data-val="0.00"></div>
+                            <div class="matrix-cell middle-cell" id="zoom-middle-r2c2" data-val="0.00"></div>
                         </div>
                     </div>
                 </div>
                 <div class="strain-row-strict">
                     <div class="strain-wrap-strict">
                         <div class="strain-bar-box">
-                            <div class="strain-bar-fill thumb-proximal-fill" id="zoom-bar-thumb-p"></div>
-                            <span class="strain-bar-text">近端</span>
-                        </div>
-                        <div class="strain-bar-box">
                             <div class="strain-bar-fill thumb-distal-fill" id="zoom-bar-thumb-d"></div>
                             <span class="strain-bar-text">远端</span>
                         </div>
-                    </div>
-                    <div class="strain-wrap-strict">
                         <div class="strain-bar-box">
-                            <div class="strain-bar-fill index-proximal-fill" id="zoom-bar-index-p"></div>
+                            <div class="strain-bar-fill thumb-proximal-fill" id="zoom-bar-thumb-p"></div>
                             <span class="strain-bar-text">近端</span>
                         </div>
+                    </div>
+                    <div class="strain-wrap-strict">
                         <div class="strain-bar-box">
                             <div class="strain-bar-fill index-distal-fill" id="zoom-bar-index-d"></div>
                             <span class="strain-bar-text">远端</span>
                         </div>
+                        <div class="strain-bar-box">
+                            <div class="strain-bar-fill index-proximal-fill" id="zoom-bar-index-p"></div>
+                            <span class="strain-bar-text">近端</span>
+                        </div>
                     </div>
                     <div class="strain-wrap-strict">
                         <div class="strain-bar-box">
-                            <div class="strain-bar-fill middle-proximal-fill" id="zoom-bar-middle-p"></div>
-                            <span class="strain-bar-text">近端</span>
-                        </div>
-                        <div class="strain-bar-box">
                             <div class="strain-bar-fill middle-distal-fill" id="zoom-bar-middle-d"></div>
                             <span class="strain-bar-text">远端</span>
+                        </div>
+                        <div class="strain-bar-box">
+                            <div class="strain-bar-fill middle-proximal-fill" id="zoom-bar-middle-p"></div>
+                            <span class="strain-bar-text">近端</span>
                         </div>
                     </div>
                 </div>
@@ -362,23 +363,13 @@
             </div>
             <div class="controls">
                 <div class="duration-display">
-                    <div class="duration-box">
-                        <span class="duration-label">连接</span>
-                        <span class="duration-value" id="conn-duration">00:00:00</span>
-                    </div>
-                    <div class="duration-box">
-                        <span class="duration-label">采集</span>
-                        <span class="duration-value" id="acq-duration">00:00:00</span>
-                    </div>
+                    <div class="duration-box"><span class="duration-label">连接</span><span class="duration-value" id="conn-duration">00:00:00</span></div>
+                    <div class="duration-box"><span class="duration-label">采集</span><span class="duration-value" id="acq-duration">00:00:00</span></div>
                 </div>
-                <div class="status">
-                    <div class="status-dot" id="conn-dot"></div>
-                    <span id="conn-text">未连接</span>
-                </div>
+                <div class="status"><div class="status-dot" id="conn-dot"></div><span id="conn-text">未连接</span></div>
                 <button class="btn-primary" id="btn-connect" onclick="serial.connect()">连接串口</button>
                 <button class="btn-danger" id="btn-disconnect" onclick="serial.disconnect()" disabled>断开</button>
                 <button class="btn-primary" onclick="toggleCollect()" id="btn-collect" disabled>开始采集</button>
-                <button class="btn-secondary" onclick="toggleRecord()" id="btn-record">开始记录</button>
                 <button class="btn-secondary" onclick="togglePause()" id="btn-pause">暂停</button>
                 <button class="btn-secondary" onclick="exportCSV()">导出CSV</button>
                 <button class="btn-secondary" onclick="clearData()">清空数据</button>
@@ -391,12 +382,10 @@
         <div class="row row-pressure">
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title thumb-color">
-                        <span class="dot thumb-dot"></span>👍 拇指指尖压力 (9通道)
-                    </div>
+                    <div class="panel-title thumb-color"><span class="dot thumb-dot"></span>👍 拇指指尖压力 (9通道)</div>
                     <div style="display:flex; gap:6px; align-items:center;">
                         <button class="btn-icon" onclick="openZoom('pressure', 0)" title="放大">🔍</button>
-                        <span style="font-size:0.7rem;color:#475569">阵列0</span>
+                        <span style="font-size:0.7rem;color:#475569">PL0-PL2</span>
                     </div>
                 </div>
                 <canvas id="canvas-pressure-thumb"></canvas>
@@ -404,12 +393,10 @@
             </div>
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title index-color">
-                        <span class="dot index-dot"></span>☝️ 食指指尖压力 (9通道)
-                    </div>
+                    <div class="panel-title index-color"><span class="dot index-dot"></span>☝️ 食指指尖压力 (9通道)</div>
                     <div style="display:flex; gap:6px; align-items:center;">
                         <button class="btn-icon" onclick="openZoom('pressure', 1)" title="放大">🔍</button>
-                        <span style="font-size:0.7rem;color:#475569">阵列1</span>
+                        <span style="font-size:0.7rem;color:#475569">PL3-PL5</span>
                     </div>
                 </div>
                 <canvas id="canvas-pressure-index"></canvas>
@@ -417,12 +404,10 @@
             </div>
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title middle-color">
-                        <span class="dot middle-dot"></span>🖕 中指指尖压力 (9通道)
-                    </div>
+                    <div class="panel-title middle-color"><span class="dot middle-dot"></span>🖕 中指指尖压力 (9通道)</div>
                     <div style="display:flex; gap:6px; align-items:center;">
                         <button class="btn-icon" onclick="openZoom('pressure', 2)" title="放大">🔍</button>
-                        <span style="font-size:0.7rem;color:#475569">阵列2</span>
+                        <span style="font-size:0.7rem;color:#475569">PL6-PL8</span>
                     </div>
                 </div>
                 <canvas id="canvas-pressure-middle"></canvas>
@@ -434,9 +419,7 @@
         <div class="row row-strain">
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title thumb-color">
-                        <span class="dot thumb-dot"></span>🔧 拇指关节应变 (2通道)
-                    </div>
+                    <div class="panel-title thumb-color"><span class="dot thumb-dot"></span>🔧 拇指关节应变 (2通道)</div>
                     <button class="btn-icon" onclick="openZoom('strain', 0)" title="放大">🔍</button>
                 </div>
                 <canvas id="canvas-strain-thumb"></canvas>
@@ -444,9 +427,7 @@
             </div>
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title index-color">
-                        <span class="dot index-dot"></span>🔧 食指关节应变 (2通道)
-                    </div>
+                    <div class="panel-title index-color"><span class="dot index-dot"></span>🔧 食指关节应变 (2通道)</div>
                     <button class="btn-icon" onclick="openZoom('strain', 1)" title="放大">🔍</button>
                 </div>
                 <canvas id="canvas-strain-index"></canvas>
@@ -454,9 +435,7 @@
             </div>
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title middle-color">
-                        <span class="dot middle-dot"></span>🔧 中指关节应变 (2通道)
-                    </div>
+                    <div class="panel-title middle-color"><span class="dot middle-dot"></span>🔧 中指关节应变 (2通道)</div>
                     <button class="btn-icon" onclick="openZoom('strain', 2)" title="放大">🔍</button>
                 </div>
                 <canvas id="canvas-strain-middle"></canvas>
@@ -466,98 +445,92 @@
 
         <!-- 第三行: 手部映射 + IMU -->
         <div class="row row-combined">
-            <!-- 左侧：手部传感器映射 -->
             <div class="panel hand-map-panel">
                 <div class="panel-header">
-                    <div class="panel-title">
-                        <span>👋 手部传感器映射</span>
-                    </div>
+                    <div class="panel-title"><span>👋 手部传感器映射</span></div>
                     <div style="display:flex; gap:6px; align-items:center;">
                         <button class="btn-icon" onclick="openHandMapZoom()" title="放大">🔍</button>
-                        <span style="font-size:0.7rem;color:#475569"></span>
                     </div>
                 </div>
                 <div class="hand-map-content-v7">
-                    <!-- 左栏：压力矩阵 + 应变条 -->
                     <div class="map-left-v7">
                         <div class="pressure-row-strict">
                             <div class="matrix-group-strict">
                                 <span class="matrix-label-strict thumb-color">拇指</span>
-                                <div class="matrix-strict thumb-matrix" id="matrix-thumb">
-                                    <div class="matrix-cell" data-idx="0"></div>
-                                    <div class="matrix-cell" data-idx="1"></div>
-                                    <div class="matrix-cell" data-idx="2"></div>
-                                    <div class="matrix-cell" data-idx="9"></div>
-                                    <div class="matrix-cell" data-idx="10"></div>
-                                    <div class="matrix-cell" data-idx="11"></div>
-                                    <div class="matrix-cell" data-idx="18"></div>
-                                    <div class="matrix-cell" data-idx="19"></div>
-                                    <div class="matrix-cell" data-idx="20"></div>
+                                <div class="matrix-strict" id="matrix-thumb">
+                                    <div class="matrix-cell thumb-cell" id="thumb-r0c0" data-val="0.00"></div>
+                                    <div class="matrix-cell thumb-cell" id="thumb-r0c1" data-val="0.00"></div>
+                                    <div class="matrix-cell thumb-cell" id="thumb-r0c2" data-val="0.00"></div>
+                                    <div class="matrix-cell thumb-cell" id="thumb-r1c0" data-val="0.00"></div>
+                                    <div class="matrix-cell thumb-cell" id="thumb-r1c1" data-val="0.00"></div>
+                                    <div class="matrix-cell thumb-cell" id="thumb-r1c2" data-val="0.00"></div>
+                                    <div class="matrix-cell thumb-cell" id="thumb-r2c0" data-val="0.00"></div>
+                                    <div class="matrix-cell thumb-cell" id="thumb-r2c1" data-val="0.00"></div>
+                                    <div class="matrix-cell thumb-cell" id="thumb-r2c2" data-val="0.00"></div>
                                 </div>
                             </div>
                             <div class="matrix-group-strict">
                                 <span class="matrix-label-strict index-color">食指</span>
-                                <div class="matrix-strict index-matrix" id="matrix-index">
-                                    <div class="matrix-cell" data-idx="3"></div>
-                                    <div class="matrix-cell" data-idx="4"></div>
-                                    <div class="matrix-cell" data-idx="5"></div>
-                                    <div class="matrix-cell" data-idx="12"></div>
-                                    <div class="matrix-cell" data-idx="13"></div>
-                                    <div class="matrix-cell" data-idx="14"></div>
-                                    <div class="matrix-cell" data-idx="21"></div>
-                                    <div class="matrix-cell" data-idx="22"></div>
-                                    <div class="matrix-cell" data-idx="23"></div>
+                                <div class="matrix-strict" id="matrix-index">
+                                    <div class="matrix-cell index-cell" id="index-r0c0" data-val="0.00"></div>
+                                    <div class="matrix-cell index-cell" id="index-r0c1" data-val="0.00"></div>
+                                    <div class="matrix-cell index-cell" id="index-r0c2" data-val="0.00"></div>
+                                    <div class="matrix-cell index-cell" id="index-r1c0" data-val="0.00"></div>
+                                    <div class="matrix-cell index-cell" id="index-r1c1" data-val="0.00"></div>
+                                    <div class="matrix-cell index-cell" id="index-r1c2" data-val="0.00"></div>
+                                    <div class="matrix-cell index-cell" id="index-r2c0" data-val="0.00"></div>
+                                    <div class="matrix-cell index-cell" id="index-r2c1" data-val="0.00"></div>
+                                    <div class="matrix-cell index-cell" id="index-r2c2" data-val="0.00"></div>
                                 </div>
                             </div>
                             <div class="matrix-group-strict">
                                 <span class="matrix-label-strict middle-color">中指</span>
-                                <div class="matrix-strict middle-matrix" id="matrix-middle">
-                                    <div class="matrix-cell" data-idx="6"></div>
-                                    <div class="matrix-cell" data-idx="7"></div>
-                                    <div class="matrix-cell" data-idx="8"></div>
-                                    <div class="matrix-cell" data-idx="15"></div>
-                                    <div class="matrix-cell" data-idx="16"></div>
-                                    <div class="matrix-cell" data-idx="17"></div>
-                                    <div class="matrix-cell" data-idx="24"></div>
-                                    <div class="matrix-cell" data-idx="25"></div>
-                                    <div class="matrix-cell" data-idx="26"></div>
+                                <div class="matrix-strict" id="matrix-middle">
+                                    <div class="matrix-cell middle-cell" id="middle-r0c0" data-val="0.00"></div>
+                                    <div class="matrix-cell middle-cell" id="middle-r0c1" data-val="0.00"></div>
+                                    <div class="matrix-cell middle-cell" id="middle-r0c2" data-val="0.00"></div>
+                                    <div class="matrix-cell middle-cell" id="middle-r1c0" data-val="0.00"></div>
+                                    <div class="matrix-cell middle-cell" id="middle-r1c1" data-val="0.00"></div>
+                                    <div class="matrix-cell middle-cell" id="middle-r1c2" data-val="0.00"></div>
+                                    <div class="matrix-cell middle-cell" id="middle-r2c0" data-val="0.00"></div>
+                                    <div class="matrix-cell middle-cell" id="middle-r2c1" data-val="0.00"></div>
+                                    <div class="matrix-cell middle-cell" id="middle-r2c2" data-val="0.00"></div>
                                 </div>
                             </div>
                         </div>
                         <div class="strain-row-strict">
                             <div class="strain-wrap-strict">
                                 <div class="strain-bar-box">
-                                    <div class="strain-bar-fill thumb-proximal-fill" id="bar-thumb-p"></div>
-                                    <span class="strain-bar-text">近端</span>
-                                </div>
-                                <div class="strain-bar-box">
                                     <div class="strain-bar-fill thumb-distal-fill" id="bar-thumb-d"></div>
                                     <span class="strain-bar-text">远端</span>
                                 </div>
-                            </div>
-                            <div class="strain-wrap-strict">
                                 <div class="strain-bar-box">
-                                    <div class="strain-bar-fill index-proximal-fill" id="bar-index-p"></div>
+                                    <div class="strain-bar-fill thumb-proximal-fill" id="bar-thumb-p"></div>
                                     <span class="strain-bar-text">近端</span>
                                 </div>
+                            </div>
+                            <div class="strain-wrap-strict">
                                 <div class="strain-bar-box">
                                     <div class="strain-bar-fill index-distal-fill" id="bar-index-d"></div>
                                     <span class="strain-bar-text">远端</span>
                                 </div>
-                            </div>
-                            <div class="strain-wrap-strict">
                                 <div class="strain-bar-box">
-                                    <div class="strain-bar-fill middle-proximal-fill" id="bar-middle-p"></div>
+                                    <div class="strain-bar-fill index-proximal-fill" id="bar-index-p"></div>
                                     <span class="strain-bar-text">近端</span>
                                 </div>
+                            </div>
+                            <div class="strain-wrap-strict">
                                 <div class="strain-bar-box">
                                     <div class="strain-bar-fill middle-distal-fill" id="bar-middle-d"></div>
                                     <span class="strain-bar-text">远端</span>
                                 </div>
+                                <div class="strain-bar-box">
+                                    <div class="strain-bar-fill middle-proximal-fill" id="bar-middle-p"></div>
+                                    <span class="strain-bar-text">近端</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <!-- 右栏：IMU 柱状图 — 固定 220px，顶到头 -->
                     <div class="map-right-v7">
                         <div class="imu-module-v7">
                             <span class="imu-title-v7 wrist-color">手腕 IMU1</span>
@@ -571,13 +544,10 @@
                 </div>
             </div>
 
-            <!-- 右侧：IMU 上下排列 -->
             <div class="imu-column">
                 <div class="panel">
                     <div class="panel-header">
-                        <div class="panel-title wrist-color">
-                            <span class="dot wrist-dot"></span>⌚ 手腕 IMU (6通道)
-                        </div>
+                        <div class="panel-title wrist-color"><span class="dot wrist-dot"></span>⌚ 手腕 IMU (6通道)</div>
                         <div style="display:flex; gap:6px; align-items:center;">
                             <button class="btn-icon" onclick="openZoom('imu', 0)" title="放大">🔍</button>
                             <span style="font-size:0.7rem;color:#475569">MPU #1</span>
@@ -588,9 +558,7 @@
                 </div>
                 <div class="panel">
                     <div class="panel-header">
-                        <div class="panel-title back-color">
-                            <span class="dot back-dot"></span>✋ 手背 IMU (6通道)
-                        </div>
+                        <div class="panel-title back-color"><span class="dot back-dot"></span>✋ 手背 IMU (6通道)</div>
                         <div style="display:flex; gap:6px; align-items:center;">
                             <button class="btn-icon" onclick="openZoom('imu', 1)" title="放大">🔍</button>
                             <span style="font-size:0.7rem;color:#475569">MPU #2</span>
@@ -621,157 +589,75 @@
         </div>
     </div>
 
+    <!-- ==================== 鼠标拖影特效脚本（默认关闭） ==================== -->
     <script>
-        // ==================== 鼠标特效系统 ====================
+        // 【修改】默认关闭拖影
+        window.mouseEffectsEnabled = false;
+
         (function() {
             const container = document.getElementById('mouse-effects');
             if (!container) return;
-
-            let lastX = 0, lastY = 0;
-            let particleCount = 0;
-            const MAX_PARTICLES = 30; // 限制最大粒子数，避免性能问题
-
-            // 配色方案（与系统主题协调）
+            let lastX = 0, lastY = 0, particleCount = 0;
+            const MAX_PARTICLES = 30;
             const colors = [
-                'rgba(74, 222, 128, ',   // 绿色（状态指示色）
-                'rgba(56, 189, 248, ',   // 蓝色
-                'rgba(251, 146, 60, ',   // 橙色（拇指）
-                'rgba(244, 114, 182, ',  // 粉色（食指）
-                'rgba(167, 139, 250, ',  // 紫色（中指）
-                'rgba(148, 163, 184, '   // 灰色
+                'rgba(74, 222, 128, ', 'rgba(56, 189, 248, ',
+                'rgba(251, 146, 60, ', 'rgba(244, 114, 182, ',
+                'rgba(167, 139, 250, ', 'rgba(148, 163, 184, '
             ];
-
-            function getRandomColor() {
-                return colors[Math.floor(Math.random() * colors.length)];
-            }
-
+            function getRandomColor() { return colors[Math.floor(Math.random() * colors.length)]; }
             function createParticle(x, y) {
+                if (window.mouseEffectsEnabled === false) return;
                 if (particleCount >= MAX_PARTICLES) return;
-                
-                const particle = document.createElement('div');
-                particle.className = 'mouse-particle';
-                
-                const size = Math.random() * 4 + 2; // 2-6px
-                const colorBase = getRandomColor();
-                const alpha = Math.random() * 0.4 + 0.3;
-                
-                particle.style.cssText = `
-                    left: ${x}px;
-                    top: ${y}px;
-                    width: ${size}px;
-                    height: ${size}px;
-                    background: ${colorBase}${alpha});
-                    box-shadow: 0 0 ${size * 2}px ${colorBase}${alpha * 0.5});
-                `;
-                
-                container.appendChild(particle);
-                particleCount++;
-                
-                setTimeout(() => {
-                    particle.remove();
-                    particleCount--;
-                }, 1000);
+                const p = document.createElement('div'); p.className = 'mouse-particle';
+                const size = Math.random() * 4 + 2, base = getRandomColor(), alpha = Math.random() * 0.4 + 0.3;
+                p.style.cssText = `left:${x}px;top:${y}px;width:${size}px;height:${size}px;background:${base}${alpha});box-shadow:0 0 ${size*2}px ${base}${alpha*0.5});`;
+                container.appendChild(p); particleCount++;
+                setTimeout(() => { p.remove(); particleCount--; }, 1000);
             }
-
             function createRipple(x, y) {
-                const ripple = document.createElement('div');
-                ripple.className = 'click-ripple';
-                
-                const colorBase = getRandomColor();
-                ripple.style.cssText = `
-                    left: ${x}px;
-                    top: ${y}px;
-                    border-color: ${colorBase}0.6)};
-                    box-shadow: 0 0 10px ${colorBase}0.3)};
-                `;
-                
-                container.appendChild(ripple);
-                
-                setTimeout(() => ripple.remove(), 600);
+                if (window.mouseEffectsEnabled === false) return;
+                const r = document.createElement('div'); r.className = 'click-ripple';
+                const base = getRandomColor();
+                r.style.cssText = `left:${x}px;top:${y}px;border-color:${base}0.6)};box-shadow:0 0 10px ${base}0.3)};`;
+                container.appendChild(r); setTimeout(() => r.remove(), 600);
             }
-
             function createCoordLabel(x, y) {
-                const label = document.createElement('div');
-                label.className = 'cursor-coords';
+                if (window.mouseEffectsEnabled === false) return;
+                const label = document.createElement('div'); label.className = 'cursor-coords';
                 label.textContent = `[${x}, ${y}]`;
-                label.style.cssText = `
-                    left: ${x + 15}px;
-                    top: ${y - 10}px;
-                `;
-                
-                container.appendChild(label);
-                setTimeout(() => label.remove(), 1500);
+                label.style.cssText = `left:${x+15}px;top:${y-10}px;`;
+                container.appendChild(label); setTimeout(() => label.remove(), 1500);
             }
-
             function createConnectionLine(x1, y1, x2, y2) {
-                const line = document.createElement('div');
-                line.className = 'mouse-line';
-                
-                const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-                const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
-                
-                line.style.cssText = `
-                    left: ${x1}px;
-                    top: ${y1}px;
-                    width: ${length}px;
-                    transform: rotate(${angle}deg);
-                `;
-                
-                container.appendChild(line);
-                setTimeout(() => line.remove(), 800);
+                if (window.mouseEffectsEnabled === false) return;
+                const line = document.createElement('div'); line.className = 'mouse-line';
+                const length = Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+                const angle = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
+                line.style.cssText = `left:${x1}px;top:${y1}px;width:${length}px;transform:rotate(${angle}deg);`;
+                container.appendChild(line); setTimeout(() => line.remove(), 800);
             }
-
-            // 鼠标移动事件
-            let moveThrottle = 0;
             document.addEventListener('mousemove', (e) => {
-                const x = e.clientX;
-                const y = e.clientY;
-                
-                // 每隔一定距离生成粒子（节流）
-                const dist = Math.sqrt((x - lastX) ** 2 + (y - lastY) ** 2);
+                if (window.mouseEffectsEnabled === false) return;
+                const dist = Math.sqrt((e.clientX-lastX)**2 + (e.clientY-lastY)**2);
                 if (dist > 15) {
-                    createParticle(x, y);
-                    
-                    // 偶尔显示坐标
-                    if (Math.random() > 0.92) {
-                        createCoordLabel(x, y);
-                    }
-                    
-                    // 偶尔画连接线
-                    if (Math.random() > 0.95 && dist < 100) {
-                        createConnectionLine(lastX, lastY, x, y);
-                    }
-                    
-                    lastX = x;
-                    lastY = y;
+                    createParticle(e.clientX, e.clientY);
+                    if (Math.random() > 0.92) createCoordLabel(e.clientX, e.clientY);
+                    if (Math.random() > 0.95 && dist < 100) createConnectionLine(lastX, lastY, e.clientX, e.clientY);
+                    lastX = e.clientX; lastY = e.clientY;
                 }
             });
-
-            // 鼠标点击事件
             document.addEventListener('click', (e) => {
+                if (window.mouseEffectsEnabled === false) return;
                 createRipple(e.clientX, e.clientY);
-                
-                // 点击时爆发多个粒子
                 for (let i = 0; i < 5; i++) {
-                    setTimeout(() => {
-                        const offsetX = (Math.random() - 0.5) * 30;
-                        const offsetY = (Math.random() - 0.5) * 30;
-                        createParticle(e.clientX + offsetX, e.clientY + offsetY);
-                    }, i * 50);
+                    setTimeout(() => createParticle(e.clientX + (Math.random()-0.5)*30, e.clientY + (Math.random()-0.5)*30), i*50);
                 }
             });
-
-            // 双击特殊效果
             document.addEventListener('dblclick', (e) => {
+                if (window.mouseEffectsEnabled === false) return;
                 for (let i = 0; i < 12; i++) {
-                    const angle = (i / 12) * Math.PI * 2;
-                    const dist = 40;
-                    const px = e.clientX + Math.cos(angle) * dist;
-                    const py = e.clientY + Math.sin(angle) * dist;
-                    
-                    setTimeout(() => {
-                        createParticle(px, py);
-                    }, i * 30);
+                    const angle = (i/12)*Math.PI*2, d = 40;
+                    setTimeout(() => createParticle(e.clientX + Math.cos(angle)*d, e.clientY + Math.sin(angle)*d), i*30);
                 }
             });
         })();
